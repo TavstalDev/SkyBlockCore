@@ -1,0 +1,9 @@
+main: io.github.tavstaldev.skyBlockCore.SkyBlockCore
+version: '1.0.0'
+api-version: '1.21'
+
+name: SkyBlockCore
+prefix: SkyBlockCore
+authors: [ Tavstal ]
+description: This is a core plugin for MesterMC's SkyBlock server
+website: https://tavstaldev.github.io/
