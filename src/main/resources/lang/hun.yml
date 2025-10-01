@@ -1,0 +1,8 @@
+General:
+  NoPermission: "%prefix% &cNincs jogosultságod ehhez."
+
+AfkPond:
+  Enter: "%prefix% &aBeléptél az AFK tóba. Mostantól kapsz nyereményeket."
+  Exit: "%prefix% &cKiléptél az AFK tóból. Már nem kapsz nyereményeket."
+
+FileVersion: 1

@@ -8,10 +8,13 @@ import io.github.tavstaldev.banyaszLib.api.BanyaszApi;
 import io.github.tavstaldev.minecorelib.PluginBase;
 import io.github.tavstaldev.minecorelib.core.PluginTranslator;
 import io.github.tavstaldev.minecorelib.utils.VersionUtils;
+import io.github.tavstaldev.skyBlockCore.events.PlayerEventListener;
+import io.github.tavstaldev.skyBlockCore.tasks.AfkPondTask;
 import org.bukkit.Bukkit;
 
 public final class SkyBlockCore extends PluginBase {
     public static SkyBlockCore Instance;
+    private AfkPondTask afkPondTask;
     private BanyaszApi _banyaszApi;
     public BanyaszApi BanyaszApi() {
         return _banyaszApi;
@@ -63,6 +66,15 @@ public final class SkyBlockCore extends PluginBase {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
+
+        // Register Events
+        PlayerEventListener.init();
+
+        // Register tasks
+        if (afkPondTask != null && !afkPondTask.isCancelled())
+            afkPondTask.cancel();
+        afkPondTask = new AfkPondTask(); // Runs every 1 minute
+        afkPondTask.runTaskTimer(this, 0, 60 * 20);
 
         _logger.ok(String.format("%s has been successfully loaded.", getProjectName()));
     }
