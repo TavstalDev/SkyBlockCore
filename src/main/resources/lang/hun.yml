@@ -16,12 +16,17 @@ Commands:
     InvalidPlayer: "%prefix% &cA megadott játékos nem található."
   Help:
     Desc: "Információkat mutat a parancsokról."
-    Title: "&8&m        &r &bSky&3BlockCore &7Súgó &8&m   &r &7Oldal &6%current_page%&7/&6%max_page% &8&m        &r"
-    Info: "   &c&l[] &8- &7Kötelező,   &c&l<> &8- &7Opcionális"
-    Line: "&9/%command% %subcommand%&a%syntax% &8- &7%description%"
-    Bottom: "&8&m          &r %previous_btn%&6%current_page%&7/&6%max_page%%next_btn% &8&m          &r"
-    PrevBtn: "&a« "
-    NextBtn: " &a»"
+    Title: "&8&m        &r &bSkyBlock&3Core &7Súgó &8&m    &r &7Oldal &3%current_page%&7/&3%max_page% &8&m        &r"
+    Info: |-
+      &r
+      &r  &c&l[]&r &8- &7Kötelező,   &e&l<>&r &8- &7Opcionális
+      &r
+    Line: "&r  &9/%command% %subcommand%&3%syntax% &8- &7%description%"
+    Bottom: |-
+      &r
+      &8&m                       &r %previous_btn%&3%current_page%&7/&3%max_page%%next_btn% &8&m                       &r
+    PrevBtn: "&b<< "
+    NextBtn: " &b>>"
   Version:
     Desc: "Megmutatja a plugin verzióját."
     Current: "%prefix% &aA SkyBlockCore '&3%version%&a' verzióját használod."
@@ -58,6 +63,34 @@ Commands:
       Desc: "Visszaállítja a játékos szintjét 0-ra."
       Success: "%prefix% &aSikeresen visszaállítottad &e%player%&a szintjét 0-ra."
       NewLevel: "%prefix% &aA szinted alapértelmezetten 0-ra lett állítva."
+  LevelXP:
+    Help:
+      Desc: "Információkat mutat a levelxp parancsról."
+    Get:
+      Syntax: " <játékos>"
+      Desc: "Megmutatja a tapasztalatpontjaid."
+      YourLevel: "%prefix% &aA tapasztalatpontod: &e%level%"
+      OtherLevel: "%prefix% &e%player%&a tapasztalatpontjai: &e%level%"
+    Add:
+      Syntax: " [játékos] [mennyiség]"
+      Desc: "Hozzáad a megadott mennyiségű tapasztalatot a játékoshoz."
+      Success: "%prefix% &aSikeresen hozzáadtál &e%amount% &atapasztalatot &e%player%&a-hoz."
+      NewLevel: "%prefix% &aFrissítve lett a tapasztalatod. Az új szint xp-d: &e%level%"
+    Remove:
+      Syntax: " [játékos] [mennyiség]"
+      Desc: "Elvesz a megadott mennyiségű tapasztalatot a játékostól."
+      Success: "%prefix% &aSikeresen elvettél &e%amount% &atapasztalatot &e%player%&a-tól."
+      NewLevel: "%prefix% &aFrissítve lett a tapasztalatod. Az új szint xp-d: &e%level%"
+    Set:
+      Syntax: " [játékos] [mennyiség]"
+      Desc: "Beállítja a játékos tapasztalatát a megadott mennyiségre."
+      Success: "%prefix% &aSikeresen beállítottad &e%player%&a tapasztalatát &e%amount%&a-ra."
+      NewLevel: "%prefix% &aFrissítve lett a tapasztalatod. Az új szint xp-d: &e%level%"
+    Reset:
+      Syntax: " [játékos]"
+      Desc: "Visszaállítja a játékos tapasztalatát 0-ra."
+      Success: "%prefix% &aSikeresen visszaállítottad &e%player%&a tapasztalatát 0-ra."
+      NewLevel: "%prefix% &aA tapasztalatod alapértelmezetten 0-ra lett állítva."
 
 
 
