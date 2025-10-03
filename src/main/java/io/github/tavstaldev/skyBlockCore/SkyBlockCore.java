@@ -6,20 +6,31 @@ import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
 import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
 import io.github.tavstaldev.banyaszLib.api.BanyaszApi;
 import io.github.tavstaldev.minecorelib.PluginBase;
+import io.github.tavstaldev.minecorelib.core.PluginLogger;
 import io.github.tavstaldev.minecorelib.core.PluginTranslator;
 import io.github.tavstaldev.minecorelib.utils.VersionUtils;
+import io.github.tavstaldev.skyBlockCore.database.IDatabase;
+import io.github.tavstaldev.skyBlockCore.database.MySqlDatabase;
+import io.github.tavstaldev.skyBlockCore.database.SqlLiteDatabase;
 import io.github.tavstaldev.skyBlockCore.events.PlayerEventListener;
+import io.github.tavstaldev.skyBlockCore.placeholders.SkyBlockExpansion;
 import io.github.tavstaldev.skyBlockCore.tasks.AfkPondTask;
 import org.bukkit.Bukkit;
 
 public final class SkyBlockCore extends PluginBase {
     public static SkyBlockCore Instance;
+    private IDatabase database;
     private AfkPondTask afkPondTask;
-    private BanyaszApi _banyaszApi;
+    private BanyaszApi banyaszApi;
+    private  SkyBlockExpansion skyBlockExpansion;
+    //#region Public Accessors
+    public IDatabase Database() { return database; }
     public BanyaszApi BanyaszApi() {
-        return _banyaszApi;
+        return banyaszApi;
     }
-
+    public static PluginLogger Logger() { return Instance.getCustomLogger();}
+    public static SkyBlockConfig Config() { return (SkyBlockConfig) Instance.getConfig();}
+    //#endregion
     public SkyBlockCore() {
         super(false, "https://github.com/TavstalDev/SkyBlockCore/releases/latest");
     }
@@ -32,10 +43,22 @@ public final class SkyBlockCore extends PluginBase {
         _translator = new PluginTranslator(this, new String[]{"hun"});
         _logger.info(String.format("Loading %s...", getProjectName()));
 
+        // Check Minecraft version
         if (VersionUtils.isLegacy()) {
             _logger.error("The plugin is not compatible with legacy versions of Minecraft. Please use a newer version of the game.");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
+        }
+
+        // Hook into PlaceholderAPI
+        if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            _logger.error("PlaceholderAPI is not installed... Unloading...");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        } else {
+            skyBlockExpansion = new SkyBlockExpansion(this);
+            skyBlockExpansion.register();
+            _logger.ok("Found PlaceholderAPI and registered...");
         }
 
         // Check for WorldGuard
@@ -55,7 +78,7 @@ public final class SkyBlockCore extends PluginBase {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         } else {
-            _banyaszApi = BanyaszApi.getInstance();
+            banyaszApi = BanyaszApi.getInstance();
             _logger.info("BanyaszLib found and hooked into it.");
         }
 
@@ -66,6 +89,25 @@ public final class SkyBlockCore extends PluginBase {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
+
+        // Create Database
+        String databaseType = Config().storageType;
+        if (databaseType == null)
+            databaseType = "sqlite";
+        switch (databaseType.toLowerCase()) {
+            case "mysql":
+            case "mariadb": {
+                database = new MySqlDatabase();
+                break;
+            }
+            case "sqlite":
+            default: {
+                database = new SqlLiteDatabase();
+                break;
+            }
+        }
+        database.load();
+        database.checkSchema();
 
         // Register Events
         PlayerEventListener.init();
@@ -95,5 +137,16 @@ public final class SkyBlockCore extends PluginBase {
             _logger.error("Failed to register flags! Unloading...");
             Bukkit.getPluginManager().disablePlugin(this);
         }
+    }
+
+    public void reload() {
+        _logger.info("Reloading...");
+        _logger.debug("Reloading localizations...");
+        _translator.load();
+        _logger.debug("Localizations reloaded.");
+        _logger.debug("Reloading configuration...");
+        this._config.load();
+        this.database.update();
+        _logger.debug("Configuration reloaded.");
     }
 }

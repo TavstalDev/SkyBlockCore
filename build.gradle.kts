@@ -11,6 +11,9 @@ plugins {
 val javaVersion: String by project
 val paperApiVersion: String by project
 val mineCoreLibVersion: String by project
+val hikariCpVersion: String by project
+val caffeineVersion: String by project
+val placeholderApiVersion: String by project
 val worldGuardVersion: String by project
 val projectPackageName = "${project.group}.skyBlockCore"
 
@@ -32,6 +35,7 @@ repositories {
         url = uri("https://repo.papermc.io/repository/maven-public/")
     }
     maven { url = uri("https://maven.enginehub.org/repo/") }
+    maven { url = uri("https://repo.extendedclip.com/releases/") }
 }
 
 // Define project dependencies
@@ -39,10 +43,16 @@ dependencies {
     // Paper API for Minecraft server development
     compileOnly("io.papermc.paper:paper-api:${paperApiVersion}")
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:${worldGuardVersion}")
+    // Placeholder API for placeholder support
+    compileOnly("me.clip:placeholderapi:${placeholderApiVersion}")
     // Custom library for core functionality
     implementation(files("libs/MineCoreLib-${mineCoreLibVersion}.jar"))
     // BanyaszApi
     compileOnly(files("libs/BanyaszApi-1.0.1.jar"))
+    // HikariCP for database connection pooling
+    implementation("com.zaxxer:HikariCP:${hikariCpVersion}")
+    // SQL caching
+    implementation("com.github.ben-manes.caffeine:caffeine:${caffeineVersion}")
 }
 
 // Disable the default JAR task
@@ -56,6 +66,13 @@ tasks.shadowJar {
     manifest {
         attributes["paperweight-mappings-namespace"] = "spigot" // Add custom manifest attributes
     }
+
+    exclude("com/google/**")
+    exclude("org/jspecify/**")
+    exclude("org/slf4j/**")
+
+    relocate("com.zaxxer.hikari", "${projectPackageName}.shadow.hikari")
+    relocate("com.github.benmanes.caffeine", "${projectPackageName}.shadow.caffeine")
 }
 
 // Ensure the Shadow JAR task runs during the build process
