@@ -42,6 +42,15 @@ public class CommandSkyBlockCore implements CommandExecutor {
         }
     };
 
+    public CommandSkyBlockCore() {
+        var command = SkyBlockCore.Instance.getCommand(baseCommand);
+        if (command == null) {
+            _logger.error("Could not get command /" + baseCommand + " from plugin.yml! Disabling command...");
+            return;
+        }
+        command.setExecutor(this);
+    }
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args) {
         // Handle subcommands based on the first argument

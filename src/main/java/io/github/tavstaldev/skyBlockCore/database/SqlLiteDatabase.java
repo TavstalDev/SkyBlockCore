@@ -77,13 +77,13 @@ public class SqlLiteDatabase implements  IDatabase {
             // Players table
             String sql = String.format("CREATE TABLE IF NOT EXISTS %s_players (" +
                             "PlayerId VARCHAR(36) PRIMARY KEY, " +
-                            "Experience INT(11) UNSIGNED NOT NULL, " +
-                            "Level TINYINT UNSIGNED NOT NULL, " +
-                            "Factories INT(11) NOT NULL, " +
-                            "CompletedFactories INT(11) NOT NULL, " +
-                            "MaxFactories INT(11) NOT NULL, " +
-                            "OnGoingFactories INT(11) NOT NULL, " +
-                            "FactoryResearch INT(11) NOT NULL);",
+                            "Experience INTEGER NOT NULL, " +
+                            "Level INTEGER NOT NULL, " +
+                            "Factories INTEGER NOT NULL, " +
+                            "CompletedFactories INTEGER NOT NULL, " +
+                            "MaxFactories INTEGER NOT NULL, " +
+                            "OnGoingFactories INTEGER NOT NULL, " +
+                            "FactoryResearch INTEGER NOT NULL);",
                     _config.storageTablePrefix);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.executeUpdate();

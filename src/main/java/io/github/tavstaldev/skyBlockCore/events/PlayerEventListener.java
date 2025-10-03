@@ -55,7 +55,11 @@ public class PlayerEventListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        /*var playerId = event.getPlayer().getUniqueId();
+        var playerId = event.getPlayer().getUniqueId();
+        if (SkyBlockCore.Database().getPlayerData(playerId).isEmpty())
+            SkyBlockCore.Database().addPlayerData(playerId);
+
+        /*
         if (PlayerCacheManager.isMarkedForRemoval(playerId))
             PlayerCacheManager.unmarkForRemoval(playerId);*/
     }

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CommandLevel implements CommandExecutor {
-    private final PluginLogger _logger = SkyBlockCore.Logger().withModule(CommandSkyBlockCore.class);
+    private final PluginLogger _logger = SkyBlockCore.Logger().withModule(CommandLevel.class);
     @SuppressWarnings("FieldCanBeLocal")
     private final String baseCommand = "level";
     private final List<SubCommandData> _subCommands = new ArrayList<>() {
@@ -57,6 +57,15 @@ public class CommandLevel implements CommandExecutor {
             )));
         }
     };
+
+    public CommandLevel() {
+        var command = SkyBlockCore.Instance.getCommand(baseCommand);
+        if (command == null) {
+            _logger.error("Could not get command /" + baseCommand + " from plugin.yml! Disabling command...");
+            return;
+        }
+        command.setExecutor(this);
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args) {

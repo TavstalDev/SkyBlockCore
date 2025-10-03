@@ -9,6 +9,9 @@ import io.github.tavstaldev.minecorelib.PluginBase;
 import io.github.tavstaldev.minecorelib.core.PluginLogger;
 import io.github.tavstaldev.minecorelib.core.PluginTranslator;
 import io.github.tavstaldev.minecorelib.utils.VersionUtils;
+import io.github.tavstaldev.skyBlockCore.commands.CommandLevel;
+import io.github.tavstaldev.skyBlockCore.commands.CommandLevelXp;
+import io.github.tavstaldev.skyBlockCore.commands.CommandSkyBlockCore;
 import io.github.tavstaldev.skyBlockCore.database.IDatabase;
 import io.github.tavstaldev.skyBlockCore.database.MySqlDatabase;
 import io.github.tavstaldev.skyBlockCore.database.SqlLiteDatabase;
@@ -22,11 +25,12 @@ public final class SkyBlockCore extends PluginBase {
     private IDatabase database;
     private AfkPondTask afkPondTask;
     private BanyaszApi banyaszApi;
+    @SuppressWarnings("FieldCanBeLocal")
     private  SkyBlockExpansion skyBlockExpansion;
     //#region Public Accessors
-    public IDatabase Database() { return database; }
-    public BanyaszApi BanyaszApi() {
-        return banyaszApi;
+    public static IDatabase Database() { return Instance.database; }
+    public static BanyaszApi BanyaszApi() {
+        return Instance.banyaszApi;
     }
     public static PluginLogger Logger() { return Instance.getCustomLogger();}
     public static SkyBlockConfig Config() { return (SkyBlockConfig) Instance.getConfig();}
@@ -108,6 +112,11 @@ public final class SkyBlockCore extends PluginBase {
         }
         database.load();
         database.checkSchema();
+
+        // Register Commands
+        new CommandSkyBlockCore();
+        new CommandLevel();
+        new CommandLevelXp();
 
         // Register Events
         PlayerEventListener.init();
