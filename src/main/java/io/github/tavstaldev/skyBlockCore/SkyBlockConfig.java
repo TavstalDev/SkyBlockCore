@@ -3,10 +3,7 @@ package io.github.tavstaldev.skyBlockCore;
 import io.github.tavstaldev.minecorelib.config.ConfigurationBase;
 import io.github.tavstaldev.skyBlockCore.models.config.AfkPondReward;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import java.util.*;
 
 public class SkyBlockConfig extends ConfigurationBase {
     public SkyBlockConfig() {
@@ -58,36 +55,32 @@ public class SkyBlockConfig extends ConfigurationBase {
         afkPondRewards = new LinkedHashSet<>();
         // Default rewards
         if (get("afkPond.rewards") == null) {
-            HashMap<String, Object> coinsReward = new LinkedHashMap<>() {
-                {
-                    put("interval", 15);
-                    put("command", "banyaszermeadmin give %player% 2");
-                }
-            };
-            HashMap<String, Object> keyReward = new LinkedHashMap<>() {
-                {
-                    put("interval", 60);
-                    put("command", "excellentcrates:crate key give %player% common 1");
-                }
-            };
-            resolve("afkPond.rewards", new LinkedHashSet<>() {
+            Map<String, Object> coinsReward = new LinkedHashMap<>(Map.of(
+                    "interval", 900,
+                    "command", "banyaszermeadmin give %player% 2")
+            );
+            Map<String, Object> keyReward = new LinkedHashMap<>(Map.of(
+                    "interval", 3600,
+                    "command", "excellentcrates:crate key give %player% common 1")
+            );
+            List<Map<String, Object>> rewardsList = new ArrayList<>() {
                 {
                     add(coinsReward);
                     add(keyReward);
                 }
-            });
+            };
+            resolve("afkPond.rewards", rewardsList);
         }
-        var rawRewards = resolveGet("afkPond.rewards", new LinkedHashSet<>());
+        var rawRewards = resolveGet("afkPond.rewards", new ArrayList<>());
         for (var rawReward : rawRewards) {
             //noinspection PatternVariableHidesField
             if (!(rawReward instanceof HashMap<?, ?> map))
                 continue;
-            var interval = map.get("interval");
-            var command = map.get("command");
-            if (interval instanceof Long intInterval && command instanceof String strCommand) {
-                afkPondRewards.add(new AfkPondReward(intInterval, strCommand));
-            }
-            else {
+            try {
+                var interval = (long) map.get("interval");
+                var command = (String) map.get("command");
+                afkPondRewards.add(new AfkPondReward(interval, command));
+            } catch (Exception ignored) {
                 SkyBlockCore.Instance.getLogger().warning("Invalid afkPond reward configuration, skipping...");
             }
         }
