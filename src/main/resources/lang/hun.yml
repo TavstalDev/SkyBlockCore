@@ -21,7 +21,7 @@ Commands:
       &r
       &r  &c&l[]&r &8- &7Kötelező,   &e&l<>&r &8- &7Opcionális
       &r
-    Line: "&r  &9/%command% %subcommand%&3%syntax% &8- &7%description%"
+    Line: "&r  &b/%command% %subcommand%&3%syntax% &8- &7%description%"
     Bottom: |-
       &r
       &8&m                       &r %previous_btn%&3%current_page%&7/&3%max_page%%next_btn% &8&m                       &r
