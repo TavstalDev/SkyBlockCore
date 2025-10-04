@@ -28,6 +28,9 @@ public class PlayerEventListener implements Listener {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
+        if (!SkyBlockCore.Config().afkPondEnabled)
+            return;
+
         Player player = event.getPlayer();
         // Ignore if the player is in creative or spectator mode
         if (!(player.getGameMode() == GameMode.ADVENTURE || player.getGameMode() == GameMode.SURVIVAL))
@@ -59,6 +62,8 @@ public class PlayerEventListener implements Listener {
         if (SkyBlockCore.Database().getPlayerData(playerId).isEmpty())
             SkyBlockCore.Database().addPlayerData(playerId);
 
+        PlayerCacheManager.addJoinTime(playerId, LocalDateTime.now());
+
         /*
         if (PlayerCacheManager.isMarkedForRemoval(playerId))
             PlayerCacheManager.unmarkForRemoval(playerId);*/
@@ -66,9 +71,13 @@ public class PlayerEventListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        var afkTime = PlayerCacheManager.getAfkTime(event.getPlayer().getUniqueId());
+        var playerId = event.getPlayer().getUniqueId();
+        var afkTime = PlayerCacheManager.getAfkTime(playerId);
         if (afkTime != null)
-            PlayerCacheManager.removeFromAfkPond(event.getPlayer().getUniqueId());
+            PlayerCacheManager.removeFromAfkPond(playerId);
+
+        PlayerCacheManager.removeJoinTime(playerId);
+
         //PlayerCacheManager.markForRemoval(event.getPlayer().getUniqueId());
     }
 }
