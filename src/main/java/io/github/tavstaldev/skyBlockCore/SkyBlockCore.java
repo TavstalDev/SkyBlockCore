@@ -140,11 +140,18 @@ public final class SkyBlockCore extends PluginBase {
         FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
         try {
             StateFlag flag = new StateFlag("afk-pond", true);
+            if (registry.get("afk-pond") != null) {
+                SkyFlags.AfkPondFlag = (StateFlag) registry.get("afk-pond");
+                return;
+            }
             registry.register(flag);
             SkyFlags.AfkPondFlag = flag;
         } catch (FlagConflictException e) {
-            _logger.error("Failed to register flags! Unloading...");
+            _logger.error("Failed to register flags...");
             Bukkit.getPluginManager().disablePlugin(this);
+        }
+        catch (IllegalStateException ex) {
+            _logger.error("Failed to register flags...");
         }
     }
 
