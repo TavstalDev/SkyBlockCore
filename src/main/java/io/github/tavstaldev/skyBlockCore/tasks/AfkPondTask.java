@@ -1,11 +1,14 @@
 package io.github.tavstaldev.skyBlockCore.tasks;
 
+import io.github.tavstaldev.skyBlockCore.SkyBlockCore;
 import io.github.tavstaldev.skyBlockCore.managers.PlayerCacheManager;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.*;
 
 public class AfkPondTask extends BukkitRunnable {
     @Override
@@ -14,31 +17,55 @@ public class AfkPondTask extends BukkitRunnable {
         if (playersAfking.isEmpty())
             return;
 
+        var config = SkyBlockCore.Config();
+        if (!config.afkPondEnabled) {
+            // Afk pond rewards are disabled, cancel the task
+            this.cancel();
+            return;
+        }
+
+        Map<UUID, Set<String>> playerCommandsToExecute = new HashMap<>();
         for (var playerId : playersAfking.keySet()) {
             var afkTime = PlayerCacheManager.getAfkTime(playerId);
             if (afkTime == null)
                 continue;
 
-            var player = Bukkit.getPlayer(playerId);
-            if (player == null || !player.isOnline() || player.isDead() || player.isFlying() || player.isInsideVehicle()) {
-                PlayerCacheManager.removeFromAfkPond(playerId);
-                continue;
-            }
-
             var duration = Duration.between(afkTime, LocalDateTime.now()).abs();
-            var minutes = duration.toMinutes();
-            if (minutes < 1)
+            var seconds = duration.toSeconds();
+            if (seconds < 1)
                 continue;
 
-            var server = Bukkit.getServer();
-            if (minutes % 15 == 0) {
-                server.dispatchCommand(server.getConsoleSender(), String.format("banyaszermeadmin give %s 2", player.getName()));
-                server.dispatchCommand(server.getConsoleSender(), String.format("codex unlock %s objectives first_afk_reward", player.getName()));
+            Set<String> commandsToRun = new HashSet<>();
+            for (var reward : config.afkPondRewards) {
+                if (seconds % reward.interval != 0)
+                    continue;
+
+                commandsToRun.add(reward.command);
             }
-            if (minutes % 60 == 0) {
-                server.dispatchCommand(server.getConsoleSender(), String.format("excellentcrates:crate key give %s common 1", player.getName()));
-                server.dispatchCommand(server.getConsoleSender(), String.format("codex unlock %s objectives first_afk_reward", player.getName()));
-            }
+            if (!commandsToRun.isEmpty())
+                playerCommandsToExecute.put(playerId, commandsToRun);
         }
+
+        if (playerCommandsToExecute.isEmpty())
+            return;
+
+        // Execute the reward commands on the main thread
+        Bukkit.getScheduler().runTask(SkyBlockCore.Instance, () -> {
+            for (var entry : playerCommandsToExecute.entrySet()) {
+                var playerId = entry.getKey();
+                Player player = Bukkit.getPlayer(playerId);
+                if (player == null || !player.isOnline() || player.isDead() || player.isFlying() || player.isInsideVehicle()) {
+                    PlayerCacheManager.removeFromAfkPond(playerId);
+                    return;
+                }
+
+                var server = Bukkit.getServer();
+                var console = server.getConsoleSender();
+                var commandsToRun = entry.getValue();
+                for (var command : commandsToRun) {
+                    server.dispatchCommand(console, command.replace("%player%", player.getName()));
+                }
+            }
+        });
     }
 }

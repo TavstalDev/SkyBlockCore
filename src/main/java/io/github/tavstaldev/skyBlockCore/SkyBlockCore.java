@@ -18,15 +18,17 @@ import io.github.tavstaldev.skyBlockCore.database.SqlLiteDatabase;
 import io.github.tavstaldev.skyBlockCore.events.PlayerEventListener;
 import io.github.tavstaldev.skyBlockCore.placeholders.SkyBlockExpansion;
 import io.github.tavstaldev.skyBlockCore.tasks.AfkPondTask;
+import io.github.tavstaldev.skyBlockCore.tasks.GameTimeTask;
 import org.bukkit.Bukkit;
 
 public final class SkyBlockCore extends PluginBase {
     public static SkyBlockCore Instance;
     private IDatabase database;
-    private AfkPondTask afkPondTask;
     private BanyaszApi banyaszApi;
     @SuppressWarnings("FieldCanBeLocal")
     private  SkyBlockExpansion skyBlockExpansion;
+    private AfkPondTask afkPondTask;
+    private GameTimeTask gameTimeTask;
     //#region Public Accessors
     public static IDatabase Database() { return Instance.database; }
     public static BanyaszApi BanyaszApi() {
@@ -122,12 +124,34 @@ public final class SkyBlockCore extends PluginBase {
         PlayerEventListener.init();
 
         // Register tasks
-        if (afkPondTask != null && !afkPondTask.isCancelled())
-            afkPondTask.cancel();
-        afkPondTask = new AfkPondTask(); // Runs every 1 minute
-        afkPondTask.runTaskTimer(this, 0, 60 * 20);
+        // AFK Pond task
+        if (Config().afkPondEnabled) {
+            if (afkPondTask != null && !afkPondTask.isCancelled())
+                afkPondTask.cancel();
+            afkPondTask = new AfkPondTask();
+            afkPondTask.runTaskTimerAsynchronously(this, 0, Config().afkPondInterval * 20);
+        }
+        // GameTime task
+        if (Config().gameTimeRewardEnabled) {
+            if (gameTimeTask != null && !gameTimeTask.isCancelled())
+                gameTimeTask.cancel();
+            gameTimeTask = new GameTimeTask();
+            gameTimeTask.runTaskTimerAsynchronously(this, 0, Config().gameTimeRewardInterval * 20);
+        }
 
         _logger.ok(String.format("%s has been successfully loaded.", getProjectName()));
+        if (Config().checkForUpdates) {
+            isUpToDate().thenAccept(upToDate -> {
+                if (upToDate) {
+                    _logger.ok("Plugin is up to date!");
+                } else {
+                    _logger.warn("A new version of the plugin is available: " + getDownloadUrl());
+                }
+            }).exceptionally(e -> {
+                _logger.error("Failed to determine update status: " + e.getMessage());
+                return null;
+            });
+        }
     }
 
     @Override
@@ -163,6 +187,23 @@ public final class SkyBlockCore extends PluginBase {
         _logger.debug("Reloading configuration...");
         this._config.load();
         this.database.update();
+
+        // Update Tasks
+        // Step 1. Cancel existing tasks
+        if (afkPondTask != null && !afkPondTask.isCancelled())
+            afkPondTask.cancel();
+        if (gameTimeTask != null && !gameTimeTask.isCancelled())
+            gameTimeTask.cancel();
+        // Step 2. Start tasks if enabled
+        if (Config().afkPondEnabled) {
+            afkPondTask = new AfkPondTask();
+            afkPondTask.runTaskTimerAsynchronously(this, 0, Config().afkPondInterval * 20);
+        }
+        if (Config().gameTimeRewardEnabled) {
+            gameTimeTask = new GameTimeTask();
+            gameTimeTask.runTaskTimerAsynchronously(this, 0, Config().gameTimeRewardInterval * 20);
+        }
+
         _logger.debug("Configuration reloaded.");
     }
 }
