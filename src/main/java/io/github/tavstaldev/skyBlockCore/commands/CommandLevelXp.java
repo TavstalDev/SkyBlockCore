@@ -232,7 +232,7 @@ public class CommandLevelXp implements CommandExecutor {
                     if (target.isOnline()) {
                         SkyBlockCore.Instance.sendCommandReply(target.getPlayer(), "Commands.LevelXP.Remove.NewLevel", Map.of("level", String.valueOf(playerData.getExperience())));
                     }
-                    break;
+                    return true;
                 }
                 case "set": {
                     // Check if the player has permission to use the help command
@@ -277,7 +277,7 @@ public class CommandLevelXp implements CommandExecutor {
                     if (target.isOnline()) {
                         SkyBlockCore.Instance.sendCommandReply(target.getPlayer(), "Commands.LevelXP.Set.NewLevel", Map.of("level", String.valueOf(playerData.getExperience())));
                     }
-                    break;
+                    return true;
                 }
                 case "reset": {
                     // Check if the player has permission to use the help command
@@ -322,7 +322,7 @@ public class CommandLevelXp implements CommandExecutor {
                     if (target.isOnline()) {
                         SkyBlockCore.Instance.sendCommandReply(target.getPlayer(), "Commands.LevelXP.Reset.NewLevel");
                     }
-                    break;
+                    return true;
                 }
             }
 
