@@ -36,7 +36,7 @@ public class MySqlDatabase implements  IDatabase {
     @Override
     public void load() {
         _config = SkyBlockCore.Config();
-        _dataSource = CreateDataSource();
+        _dataSource = createDataSource();
         update();
     }
 
@@ -62,7 +62,7 @@ public class MySqlDatabase implements  IDatabase {
         }
     }
 
-    private HikariDataSource CreateDataSource() {
+    private HikariDataSource createDataSource() {
         try {
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(String.format("jdbc:mysql://%s:%s/%s",
