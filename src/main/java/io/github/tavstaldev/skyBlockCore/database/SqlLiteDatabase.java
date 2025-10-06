@@ -59,7 +59,7 @@ public class SqlLiteDatabase implements  IDatabase {
             if (_config == null)
                 _config = SkyBlockCore.Config();
             Class.forName("org.sqlite.JDBC");
-            return DriverManager.getConnection(String.format("jdbc:sqlite:plugins/OpenMentions/%s.db", _config.storageFilename));
+            return DriverManager.getConnection(String.format("jdbc:sqlite:plugins/SkyBlockCore/%s.db", _config.storageFilename));
         } catch (Exception ex) {
             _logger.error(String.format("Unknown error happened while creating db connection...\n%s", ex.getMessage()));
             return null;
