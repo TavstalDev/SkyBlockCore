@@ -31,13 +31,13 @@ public class AfkPondTask extends BukkitRunnable {
                 continue;
 
             var duration = Duration.between(afkTime, LocalDateTime.now()).abs();
-            var seconds = duration.toSeconds();
-            if (seconds < 1)
+            var minutes = duration.toMinutes();
+            if (minutes < 1)
                 continue;
 
             Set<String> commandsToRun = new HashSet<>();
             for (var reward : config.afkPondRewards) {
-                if (seconds % reward.interval != 0)
+                if (minutes % reward.interval != 0)
                     continue;
 
                 commandsToRun.add(reward.command);

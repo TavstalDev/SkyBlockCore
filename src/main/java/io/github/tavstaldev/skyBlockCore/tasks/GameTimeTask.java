@@ -28,11 +28,11 @@ public class GameTimeTask extends BukkitRunnable {
                 continue;
 
             var duration = Duration.between(joinTime, LocalDateTime.now()).abs();
-            var seconds = duration.toSeconds();
-            if (seconds < 1)
+            var minutes = duration.toMinutes();
+            if (minutes < 1)
                 continue;
 
-            if (seconds % SkyBlockCore.Config().gameTimeRewardRequiredOnlineTime != 0)
+            if (minutes % SkyBlockCore.Config().gameTimeRewardRequiredOnlineTime != 0)
                 continue;
 
             playersToBeRewarded.add(playerId);
