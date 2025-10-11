@@ -343,7 +343,7 @@ public class CommandLevelXp implements CommandExecutor {
             return true;
         }
         SkyBlockCore.Instance.sendCommandReply(sender, "Commands.LevelXP.Get.YourLevel", Map.of(
-                        "level", String.valueOf(playerData.get().getLevel())
+                        "level", String.valueOf(playerData.get().getExperience())
                 )
         );
         return true;
