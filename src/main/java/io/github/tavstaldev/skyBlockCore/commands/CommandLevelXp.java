@@ -107,7 +107,7 @@ public class CommandLevelXp implements CommandExecutor {
                             return true;
                         }
                         OfflinePlayer target = SkyBlockCore.Instance.getServer().getOfflinePlayer(args[1]);
-                        if (!target.hasPlayedBefore()) {
+                        if (!target.hasPlayedBefore() && !target.isOnline()) {
                             SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPlayer", Map.of("player", args[1]));
                             return true;
                         }
@@ -157,7 +157,7 @@ public class CommandLevelXp implements CommandExecutor {
                     }
 
                     OfflinePlayer target = SkyBlockCore.Instance.getServer().getOfflinePlayer(args[1]);
-                    if (!target.hasPlayedBefore()) {
+                    if (!target.hasPlayedBefore() && !target.isOnline()) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPlayer", Map.of("player", args[1]));
                         return true;
                     }
@@ -202,7 +202,7 @@ public class CommandLevelXp implements CommandExecutor {
                     }
 
                     OfflinePlayer target = SkyBlockCore.Instance.getServer().getOfflinePlayer(args[1]);
-                    if (!target.hasPlayedBefore()) {
+                    if (!target.hasPlayedBefore() && !target.isOnline()) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPlayer", Map.of("player", args[1]));
                         return true;
                     }
@@ -247,7 +247,7 @@ public class CommandLevelXp implements CommandExecutor {
                     }
 
                     OfflinePlayer target = SkyBlockCore.Instance.getServer().getOfflinePlayer(args[1]);
-                    if (!target.hasPlayedBefore()) {
+                    if (!target.hasPlayedBefore() && !target.isOnline()) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPlayer", Map.of("player", args[1]));
                         return true;
                     }
@@ -292,7 +292,7 @@ public class CommandLevelXp implements CommandExecutor {
                     }
 
                     OfflinePlayer target = SkyBlockCore.Instance.getServer().getOfflinePlayer(args[1]);
-                    if (!target.hasPlayedBefore()) {
+                    if (!target.hasPlayedBefore() && !target.isOnline()) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPlayer", Map.of("player", args[1]));
                         return true;
                     }
