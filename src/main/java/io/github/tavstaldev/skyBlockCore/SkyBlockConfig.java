@@ -92,7 +92,7 @@ public class SkyBlockConfig extends ConfigurationBase {
         gameTimeRewardEnabled = resolveGet("gameTimeReward.enabled", true);
         gameTimeRewardInterval = resolveGet("gameTimeReward.interval", 60);
         resolveComment("gameTimeReward.interval", List.of("Interval in seconds to check for online time and give rewards"));
-        gameTimeRewardRequiredOnlineTime = resolveGet("gameTimeReward.requiredOnlineTime", 5);
+        gameTimeRewardRequiredOnlineTime = resolveGet("gameTimeReward.requiredOnlineTime", 60);
         resolveComment("gameTimeReward.requiredOnlineTime", List.of("Required online time in minutes to get the reward"));
         gameTimeRewardCommand = resolveGet("gameTimeReward.command", "levelxp add %player% 1");
     }
