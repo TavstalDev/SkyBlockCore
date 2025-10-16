@@ -28,7 +28,7 @@ public class PlayerEventListener implements Listener {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        if (!SkyBlockCore.Config().afkPondEnabled)
+        if (!SkyBlockCore.config().afkPondEnabled)
             return;
 
         Player player = event.getPlayer();
@@ -59,8 +59,8 @@ public class PlayerEventListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         var playerId = event.getPlayer().getUniqueId();
-        if (SkyBlockCore.Database().getPlayerData(playerId).isEmpty())
-            SkyBlockCore.Database().addPlayerData(playerId);
+        if (SkyBlockCore.database().getPlayerData(playerId).isEmpty())
+            SkyBlockCore.database().addPlayerData(playerId);
 
         PlayerCacheManager.addJoinTime(playerId, LocalDateTime.now());
 

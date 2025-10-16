@@ -17,7 +17,7 @@ public class AfkPondTask extends BukkitRunnable {
         if (playersAfking.isEmpty())
             return;
 
-        var config = SkyBlockCore.Config();
+        var config = SkyBlockCore.config();
         if (!config.afkPondEnabled) {
             // Afk pond rewards are disabled, cancel the task
             this.cancel();

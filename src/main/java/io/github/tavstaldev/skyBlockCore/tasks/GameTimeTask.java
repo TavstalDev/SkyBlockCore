@@ -15,7 +15,7 @@ import java.util.UUID;
 public class GameTimeTask extends BukkitRunnable {
     @Override
     public void run() {
-        if (!SkyBlockCore.Config().gameTimeRewardEnabled) {
+        if (!SkyBlockCore.config().gameTimeRewardEnabled) {
             // Game time rewards are disabled, cancel the task
             this.cancel();
             return;
@@ -32,7 +32,7 @@ public class GameTimeTask extends BukkitRunnable {
             if (minutes < 1)
                 continue;
 
-            if (minutes % SkyBlockCore.Config().gameTimeRewardRequiredOnlineTime != 0)
+            if (minutes % SkyBlockCore.config().gameTimeRewardRequiredOnlineTime != 0)
                 continue;
 
             playersToBeRewarded.add(playerId);
@@ -50,7 +50,7 @@ public class GameTimeTask extends BukkitRunnable {
 
                 Bukkit.getServer().dispatchCommand(
                         Bukkit.getServer().getConsoleSender(),
-                        SkyBlockCore.Config().gameTimeRewardCommand.replace("%player%", player.getName())
+                        SkyBlockCore.config().gameTimeRewardCommand.replace("%player%", player.getName())
                 );
             }
         });
