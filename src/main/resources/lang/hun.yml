@@ -91,7 +91,38 @@ Commands:
       Desc: "Visszaállítja a játékos tapasztalatát 0-ra."
       Success: "%prefix% &aSikeresen visszaállítottad &e%player%&a tapasztalatát 0-ra."
       NewLevel: "%prefix% &aA tapasztalatod alapértelmezetten 0-ra lett állítva."
+  HourlyRewards:
+    Help:
+      Desc: "Információkat mutat a hourlyrewards parancsról."
+    Complete:
+      Syntax: " <játékos>"
+      Success: "%prefix% &aSikeresen mentetted %player% óránkénti jutalmát igényelt állapotra."
+    Reset:
+      Syntax: " <játékos>"
+      Success: "%prefix% &aSikeresen visszaállítottad %player% óránkénti jutalmát."
+  DailyRewards:
+    Help:
+      Desc: "Információkat mutat a dailyrewards parancsról."
+    Complete:
+      Syntax: " <játékos>"
+      Success: "%prefix% &aSikeresen mentetted %player% napi jutalmát igényelt állapotra."
+    Reset:
+      Syntax: " <játékos>"
+      Success: "%prefix% &aSikeresen visszaállítottad %player% napi jutalmát."
+  WeeklyRewards:
+    Help:
+      Desc: "Információkat mutat a weeklyrewards parancsról."
+    Complete:
+      Syntax: " <játékos>"
+      Success: "%prefix% &aSikeresen mentetted %player% heti jutalmát igényelt állapotra."
+    Reset:
+      Syntax: " <játékos>"
+      Success: "%prefix% &aSikeresen visszaállítottad %player% heti jutalmát."
 
-
+Time:
+  Days: "%time% nap"
+  Hours: "%time% óra"
+  Minutes: "%time% perc"
+  Seconds: "%time% másodperc"
 
 FileVersion: 1
