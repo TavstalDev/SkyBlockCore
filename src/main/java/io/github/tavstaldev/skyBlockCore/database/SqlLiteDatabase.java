@@ -17,7 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class SqlLiteDatabase implements  IDatabase {
-    private final PluginLogger _logger = SkyBlockCore.Logger().withModule(MySqlDatabase.class);
+    private final PluginLogger _logger = SkyBlockCore.logger().withModule(SqlLiteDatabase.class);
     private SkyBlockConfig _config;
     private final Cache<@NotNull UUID, PlayerData> _playerCache = Caffeine.newBuilder()
             .maximumSize(1000)
@@ -29,35 +29,43 @@ public class SqlLiteDatabase implements  IDatabase {
     private String updatePlayerDataSql;
     private String removePlayerDataSql;
     private String getPlayerDataSql;
+    private String resetDailyRewardsSql;
+    private String resetWeeklyRewardsSql;
+    private String resetHourlyRewardsSql;
     //#endregion
 
     @Override
     public void load() {
-        _config = SkyBlockCore.Config();
+        _config = SkyBlockCore.config();
         update();
     }
 
     @Override
     public void update() {
         addPlayerDataSql = String.format("INSERT INTO %s_players (PlayerId, Experience, Level, Factories, " +
-                        "CompletedFactories, MaxFactories, OnGoingFactories, FactoryResearch) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
+                        "CompletedFactories, MaxFactories, OnGoingFactories, FactoryResearch, DailyRewardClaimed, WeeklyRewardClaimed, HourlyRewardClaimed) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
                 _config.storageTablePrefix);
 
         updatePlayerDataSql = String.format("UPDATE %s_players SET Experience = ?, Level = ?, Factories = ?, " +
-                "CompletedFactories = ?, MaxFactories = ?, OnGoingFactories = ?, FactoryResearch = ? " +
+                "CompletedFactories = ?, MaxFactories = ?, OnGoingFactories = ?, FactoryResearch = ?, " +
+                "DailyRewardClaimed = ?, WeeklyRewardClaimed = ?, HourlyRewardClaimed = ? " +
                 "WHERE PlayerId = ?;", _config.storageTablePrefix);
         removePlayerDataSql = String.format("DELETE FROM %s_players WHERE PlayerId = ?;", _config.storageTablePrefix);
         getPlayerDataSql = String.format("SELECT * FROM %s_players WHERE PlayerId = ?;", _config.storageTablePrefix);
+
+        resetDailyRewardsSql = String.format("UPDATE %s_players SET DailyRewardClaimed = 0;", _config.storageTablePrefix);
+        resetWeeklyRewardsSql = String.format("UPDATE %s_players SET WeeklyRewardClaimed = 0;", _config.storageTablePrefix);
+        resetHourlyRewardsSql = String.format("UPDATE %s_players SET HourlyRewardClaimed = 0;", _config.storageTablePrefix);
     }
 
     @Override
     public void unload() {/* ignored */}
 
-    private Connection CreateConnection() {
+    private Connection createConnection() {
         try {
             if (_config == null)
-                _config = SkyBlockCore.Config();
+                _config = SkyBlockCore.config();
             Class.forName("org.sqlite.JDBC");
             return DriverManager.getConnection(String.format("jdbc:sqlite:plugins/SkyBlockCore/%s.db", _config.storageFilename));
         } catch (Exception ex) {
@@ -68,7 +76,7 @@ public class SqlLiteDatabase implements  IDatabase {
 
     @Override
     public void checkSchema() {
-        try (Connection connection = CreateConnection()) {
+        try (Connection connection = createConnection()) {
             if (connection == null) {
                 _logger.error("Connection is null, cannot check schema.");
                 return;
@@ -83,7 +91,10 @@ public class SqlLiteDatabase implements  IDatabase {
                             "CompletedFactories INTEGER NOT NULL, " +
                             "MaxFactories INTEGER NOT NULL, " +
                             "OnGoingFactories INTEGER NOT NULL, " +
-                            "FactoryResearch INTEGER NOT NULL);",
+                            "FactoryResearch INTEGER NOT NULL, " +
+                            "DailyRewardClaimed INTEGER NOT NULL, " +
+                            "WeeklyRewardClaimed INTEGER NOT NULL, " +
+                            "HourlyRewardClaimed INTEGER NOT NULL);",
                     _config.storageTablePrefix);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.executeUpdate();
@@ -94,7 +105,7 @@ public class SqlLiteDatabase implements  IDatabase {
 
     @Override
     public void addPlayerData(UUID playerId) {
-        try (Connection connection = CreateConnection()) {
+        try (Connection connection = createConnection()) {
             if (connection == null) {
                 _logger.error("Connection is null, cannot add player data.");
                 return;
@@ -109,6 +120,9 @@ public class SqlLiteDatabase implements  IDatabase {
                 statement.setInt(6, 3); // MaxFactories
                 statement.setInt(7, 0); // OnGoingFactories
                 statement.setInt(8, 0); // FactoryResearch
+                statement.setInt(9, 0); // DailyRewardClaimed
+                statement.setInt(10, 0); // WeeklyRewardClaimed
+                statement.setInt(11, 0); // HourlyRewardClaimed
                 statement.executeUpdate();
             }
 
@@ -121,7 +135,7 @@ public class SqlLiteDatabase implements  IDatabase {
 
     @Override
     public void updatePlayerData(PlayerData newData) {
-        try (Connection connection = CreateConnection()) {
+        try (Connection connection = createConnection()) {
             if (connection == null) {
                 _logger.error("Connection is null, cannot update player data.");
                 return;
@@ -135,7 +149,10 @@ public class SqlLiteDatabase implements  IDatabase {
                 statement.setInt(5, newData.getMaxFactories()); // MaxFactories
                 statement.setInt(6, newData.getOngoingFactories()); // OnGoingFactories
                 statement.setInt(7, newData.getFactoryResearch()); // FactoryResearch
-                statement.setString(8, newData.getUuid().toString());
+                statement.setInt(8, newData.isDailyRewardClaimed() ? 1 : 0); // DailyRewardClaimed
+                statement.setInt(9, newData.isWeeklyRewardClaimed() ? 1 : 0); // WeeklyRewardClaimed
+                statement.setInt(10, newData.isHourlyRewardClaimed() ? 1 : 0); // MonthlyReward
+                statement.setString(11, newData.getUuid().toString());
                 statement.executeUpdate();
             }
 
@@ -147,7 +164,7 @@ public class SqlLiteDatabase implements  IDatabase {
 
     @Override
     public void removePlayerData(UUID playerId) {
-        try (Connection connection = CreateConnection()) {
+        try (Connection connection = createConnection()) {
             if (connection == null) {
                 _logger.error("Connection is null, cannot remove player data.");
                 return;
@@ -172,7 +189,7 @@ public class SqlLiteDatabase implements  IDatabase {
         if (data != null) {
             return Optional.of(data);
         }
-        try (Connection connection = CreateConnection()) {
+        try (Connection connection = createConnection()) {
             if (connection == null) {
                 _logger.error("Connection is null, cannot get player data.");
                 return Optional.empty();
@@ -190,7 +207,10 @@ public class SqlLiteDatabase implements  IDatabase {
                                 result.getInt("CompletedFactories"),
                                 result.getInt("MaxFactories"),
                                 result.getInt("OnGoingFactories"),
-                                result.getInt("FactoryResearch")
+                                result.getInt("FactoryResearch"),
+                                result.getInt("DailyRewardClaimed") == 1,
+                                result.getInt("WeeklyRewardClaimed") == 1,
+                                result.getInt("HourlyRewardClaimed") == 1
                         );
                     }
                 }
@@ -204,5 +224,59 @@ public class SqlLiteDatabase implements  IDatabase {
             _playerCache.put(playerId, data);
         }
         return Optional.ofNullable(data);
+    }
+
+    @Override
+    public void resetDailyRewards() {
+        try (Connection connection = createConnection()) {
+            if (connection == null) {
+                _logger.error("Connection is null, cannot reset daily rewards.");
+                return;
+            }
+
+            try (PreparedStatement statement = connection.prepareStatement(resetDailyRewardsSql)) {
+                statement.executeUpdate();
+            }
+
+            _playerCache.invalidateAll();
+        } catch (Exception ex) {
+            _logger.error(String.format("Unknown error happened while resetting daily rewards...\n%s", ex.getMessage()));
+        }
+    }
+
+    @Override
+    public void resetWeeklyRewards() {
+        try (Connection connection = createConnection()) {
+            if (connection == null) {
+                _logger.error("Connection is null, cannot reset weekly rewards.");
+                return;
+            }
+
+            try (PreparedStatement statement = connection.prepareStatement(resetWeeklyRewardsSql)) {
+                statement.executeUpdate();
+            }
+
+            _playerCache.invalidateAll();
+        } catch (Exception ex) {
+            _logger.error(String.format("Unknown error happened while resetting weekly rewards...\n%s", ex.getMessage()));
+        }
+    }
+
+    @Override
+    public void resetHourlyRewards() {
+        try (Connection connection = createConnection()) {
+            if (connection == null) {
+                _logger.error("Connection is null, cannot reset hourly rewards.");
+                return;
+            }
+
+            try (PreparedStatement statement = connection.prepareStatement(resetHourlyRewardsSql)) {
+                statement.executeUpdate();
+            }
+
+            _playerCache.invalidateAll();
+        } catch (Exception ex) {
+            _logger.error(String.format("Unknown error happened while resetting hourly rewards...\n%s", ex.getMessage()));
+        }
     }
 }

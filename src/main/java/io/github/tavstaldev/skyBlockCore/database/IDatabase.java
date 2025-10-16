@@ -21,5 +21,9 @@ public interface IDatabase {
 
     void removePlayerData(UUID playerId);
 
+    void resetDailyRewards();
+    void resetWeeklyRewards();
+    void resetHourlyRewards();
+
     Optional<PlayerData> getPlayerData(UUID playerId);
 }

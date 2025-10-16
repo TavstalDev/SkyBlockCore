@@ -14,6 +14,10 @@ public class PlayerData {
     private int ongoingFactories;
     private int factoryResearch;
 
+    private boolean dailyRewardClaimed;
+    private boolean weeklyRewardClaimed;
+    private boolean hourlyRewardClaimed;
+
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
         this.experience = 0;
@@ -23,9 +27,12 @@ public class PlayerData {
         this.maxFactories = 3;
         this.ongoingFactories = 0;
         this.factoryResearch = 0;
+        this.dailyRewardClaimed = false;
+        this.weeklyRewardClaimed = false;
+        this.hourlyRewardClaimed = false;
     }
 
-    public PlayerData(UUID uuid, int experience, int level, int factories, int completedFactories, int maxFactories, int ongoingFactories, int factoryResearch) {
+    public PlayerData(UUID uuid, int experience, int level, int factories, int completedFactories, int maxFactories, int ongoingFactories, int factoryResearch, boolean dailyRewardClaimed, boolean weeklyRewardClaimed, boolean hourlyRewardClaimed) {
         this.uuid = uuid;
         this.experience = experience;
         this.level = level;
@@ -34,6 +41,9 @@ public class PlayerData {
         this.maxFactories = maxFactories;
         this.ongoingFactories = ongoingFactories;
         this.factoryResearch = factoryResearch;
+        this.dailyRewardClaimed = dailyRewardClaimed;
+        this.weeklyRewardClaimed = weeklyRewardClaimed;
+        this.hourlyRewardClaimed = hourlyRewardClaimed;
     }
 
     public UUID getUuid() {
@@ -94,5 +104,29 @@ public class PlayerData {
 
     public void setFactoryResearch(int factoryResearch) {
         this.factoryResearch = factoryResearch;
+    }
+
+    public boolean isDailyRewardClaimed() {
+        return dailyRewardClaimed;
+    }
+
+    public void setDailyRewardClaimed(boolean dailyRewardClaimed) {
+        this.dailyRewardClaimed = dailyRewardClaimed;
+    }
+
+    public boolean isWeeklyRewardClaimed() {
+        return weeklyRewardClaimed;
+    }
+
+    public void setWeeklyRewardClaimed(boolean weeklyRewardClaimed) {
+        this.weeklyRewardClaimed = weeklyRewardClaimed;
+    }
+
+    public boolean isHourlyRewardClaimed() {
+        return hourlyRewardClaimed;
+    }
+
+    public void setHourlyRewardClaimed(boolean hourlyRewardClaimed) {
+        this.hourlyRewardClaimed = hourlyRewardClaimed;
     }
 }

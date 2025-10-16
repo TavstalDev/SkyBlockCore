@@ -18,7 +18,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class MySqlDatabase implements  IDatabase {
-    private final PluginLogger _logger = SkyBlockCore.Logger().withModule(MySqlDatabase.class);
+    private final PluginLogger _logger = SkyBlockCore.logger().withModule(MySqlDatabase.class);
     private HikariDataSource _dataSource;
     private SkyBlockConfig _config;
     private final Cache<@NotNull UUID, PlayerData> _playerCache = Caffeine.newBuilder()
@@ -31,11 +31,14 @@ public class MySqlDatabase implements  IDatabase {
     private String updatePlayerDataSql;
     private String removePlayerDataSql;
     private String getPlayerDataSql;
+    private String resetDailyRewardsSql;
+    private String resetWeeklyRewardsSql;
+    private String resetHourlyRewardsSql;
     //#endregion
 
     @Override
     public void load() {
-        _config = SkyBlockCore.Config();
+        _config = SkyBlockCore.config();
         _dataSource = createDataSource();
         update();
     }
@@ -43,15 +46,20 @@ public class MySqlDatabase implements  IDatabase {
     @Override
     public void update() {
         addPlayerDataSql = String.format("INSERT INTO %s_players (PlayerId, Experience, Level, Factories, " +
-                        "CompletedFactories, MaxFactories, OnGoingFactories, FactoryResearch) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
+                        "CompletedFactories, MaxFactories, OnGoingFactories, FactoryResearch, DailyRewardClaimed, WeeklyRewardClaimed, HourlyRewardClaimed) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
                 _config.storageTablePrefix);
 
         updatePlayerDataSql = String.format("UPDATE %s_players SET Experience = ?, Level = ?, Factories = ?, " +
-                        "CompletedFactories = ?, MaxFactories = ?, OnGoingFactories = ?, FactoryResearch = ? " +
+                        "CompletedFactories = ?, MaxFactories = ?, OnGoingFactories = ?, FactoryResearch = ?, " +
+                        "DailyRewardClaimed = ?, WeeklyRewardClaimed = ?, HourlyRewardClaimed = ? " +
                         "WHERE PlayerId = ?;", _config.storageTablePrefix);
         removePlayerDataSql = String.format("DELETE FROM %s_players WHERE PlayerId = ?;", _config.storageTablePrefix);
         getPlayerDataSql = String.format("SELECT * FROM %s_players WHERE PlayerId = ?;", _config.storageTablePrefix);
+
+        resetDailyRewardsSql = String.format("UPDATE %s_players SET DailyRewardClaimed = FALSE;", _config.storageTablePrefix);
+        resetWeeklyRewardsSql = String.format("UPDATE %s_players SET WeeklyRewardClaimed = FALSE;", _config.storageTablePrefix);
+        resetHourlyRewardsSql = String.format("UPDATE %s_players SET HourlyRewardClaimed = FALSE;", _config.storageTablePrefix);
     }
 
     @Override
@@ -92,7 +100,10 @@ public class MySqlDatabase implements  IDatabase {
                             "CompletedFactories INT(11) NOT NULL, " +
                             "MaxFactories INT(11) NOT NULL, " +
                             "OnGoingFactories INT(11) NOT NULL, " +
-                            "FactoryResearch INT(11) NOT NULL);",
+                            "FactoryResearch INT(11) NOT NULL, " +
+                            "DailyRewardClaimed BOOLEAN NOT NULL, " +
+                            "WeeklyRewardClaimed BOOLEAN NOT NULL, " +
+                            "HourlyRewardClaimed BOOLEAN NOT NULL);",
                     _config.storageTablePrefix);
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.executeUpdate();
@@ -113,6 +124,9 @@ public class MySqlDatabase implements  IDatabase {
                 statement.setInt(6, 3); // MaxFactories
                 statement.setInt(7, 0); // OnGoingFactories
                 statement.setInt(8, 0); // FactoryResearch
+                statement.setBoolean(9, false); // DailyRewardClaimed
+                statement.setBoolean(10, false); // WeeklyRewardClaimed
+                statement.setBoolean(11, false); // HourlyRewardClaimed
                 statement.executeUpdate();
             }
 
@@ -134,7 +148,10 @@ public class MySqlDatabase implements  IDatabase {
                 statement.setInt(5, newData.getMaxFactories()); // MaxFactories
                 statement.setInt(6, newData.getOngoingFactories()); // OnGoingFactories
                 statement.setInt(7, newData.getFactoryResearch()); // FactoryResearch
-                statement.setString(8, newData.getUuid().toString());
+                statement.setBoolean(8, newData.isDailyRewardClaimed()); // DailyRewardClaimed
+                statement.setBoolean(9, newData.isWeeklyRewardClaimed()); // WeeklyRewardClaimed
+                statement.setBoolean(10, newData.isHourlyRewardClaimed()); // MonthlyReward
+                statement.setString(11, newData.getUuid().toString());
                 statement.executeUpdate();
             }
 
@@ -179,7 +196,10 @@ public class MySqlDatabase implements  IDatabase {
                                 result.getInt("CompletedFactories"),
                                 result.getInt("MaxFactories"),
                                 result.getInt("OnGoingFactories"),
-                                result.getInt("FactoryResearch")
+                                result.getInt("FactoryResearch"),
+                                result.getBoolean("DailyRewardClaimed"),
+                                result.getBoolean("WeeklyRewardClaimed"),
+                                result.getBoolean("HourlyRewardClaimed")
                         );
                     }
                 }
@@ -193,5 +213,44 @@ public class MySqlDatabase implements  IDatabase {
             _playerCache.put(playerId, data);
         }
         return Optional.ofNullable(data);
+    }
+
+    @Override
+    public void resetDailyRewards() {
+        try (Connection connection = _dataSource.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(resetDailyRewardsSql)) {
+                statement.executeUpdate();
+            }
+
+            _playerCache.invalidateAll();
+        } catch (Exception ex) {
+            _logger.error(String.format("Unknown error happened while resetting daily rewards...\n%s", ex.getMessage()));
+        }
+    }
+
+    @Override
+    public void resetWeeklyRewards() {
+        try (Connection connection = _dataSource.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(resetWeeklyRewardsSql)) {
+                statement.executeUpdate();
+            }
+
+            _playerCache.invalidateAll();
+        } catch (Exception ex) {
+            _logger.error(String.format("Unknown error happened while resetting weekly rewards...\n%s", ex.getMessage()));
+        }
+    }
+
+    @Override
+    public void resetHourlyRewards() {
+        try (Connection connection = _dataSource.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(resetHourlyRewardsSql)) {
+                statement.executeUpdate();
+            }
+
+            _playerCache.invalidateAll();
+        } catch (Exception ex) {
+            _logger.error(String.format("Unknown error happened while resetting monthly rewards...\n%s", ex.getMessage()));
+        }
     }
 }
