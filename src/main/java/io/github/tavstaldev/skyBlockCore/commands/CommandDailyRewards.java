@@ -6,10 +6,10 @@ import io.github.tavstaldev.minecorelib.utils.ChatUtils;
 import io.github.tavstaldev.skyBlockCore.SkyBlockCore;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,31 +18,36 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CommandSkyBlockCore implements CommandExecutor {
-    private final PluginLogger _logger = SkyBlockCore.logger().withModule(CommandSkyBlockCore.class);
+public class CommandDailyRewards implements CommandExecutor {
+    private final PluginLogger _logger = SkyBlockCore.logger().withModule(CommandDailyRewards.class);
     @SuppressWarnings("FieldCanBeLocal")
-    private final String baseCommand = "sbc";
+    private final String baseCommand = "dailyrewards";
     private final List<SubCommandData> _subCommands = new ArrayList<>() {
         {
             // HELP
-            add(new SubCommandData("help", "skyblockcore.commands.help", Map.of(
+            add(new SubCommandData("help", "skyblockcore.commands.dailyrewards.help", Map.of(
                     "syntax", "",
-                    "description", "Commands.Help.Desc"
+                    "description", "Commands.DailyRewards.Help.Desc"
             )));
-            // VERSION
-            add(new SubCommandData("version", "skyblockcore.commands.version", Map.of(
-                    "syntax", "",
-                    "description", "Commands.Version.Desc"
+            // GET
+            add(new SubCommandData("get", "skyblockcore.commands.dailyrewards.get", Map.of(
+                    "syntax", "Commands.DailyRewards.Get.Syntax",
+                    "description", "Commands.DailyRewards.Get.Desc"
             )));
-            // RELOAD
-            add(new SubCommandData("reload", "skyblockcore.commands.reload", Map.of(
-                    "syntax", "",
-                    "description", "Commands.Reload.Desc"
+            // COMPLETE
+            add(new SubCommandData("add", "skyblockcore.commands.dailyrewards.complete", Map.of(
+                    "syntax", "Commands.DailyRewards.Complete.Syntax",
+                    "description", "Commands.DailyRewards.Complete.Desc"
+            )));
+            // RESET
+            add(new SubCommandData("reset", "skyblockcore.commands.dailyrewards.reset", Map.of(
+                    "syntax", "Commands.DailyRewards.Reset.Syntax",
+                    "description", "Commands.DailyRewards.Reset.Desc"
             )));
         }
     };
 
-    public CommandSkyBlockCore() {
+    public CommandDailyRewards() {
         var command = SkyBlockCore.Instance.getCommand(baseCommand);
         if (command == null) {
             _logger.error("Could not get command /" + baseCommand + " from plugin.yml! Disabling command...");
@@ -58,16 +63,9 @@ public class CommandSkyBlockCore implements CommandExecutor {
             switch (args[0].toLowerCase()) {
                 case "help":
                 case "?": {
-                    // Handle commands sent from the console
-                    if (sender instanceof ConsoleCommandSender) {
-                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.NotPlayer");
-                        return true;
-                    }
-                    Player player = (Player) sender;
-
                     // Check if the player has permission to use the help command
-                    if (!player.hasPermission("skyblockcore.commands.help")) {
-                        SkyBlockCore.Instance.sendCommandReply(player, "General.NoPermission");
+                    if (!sender.hasPermission("skyblockcore.commands.level.help")) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
                     }
 
@@ -77,63 +75,76 @@ public class CommandSkyBlockCore implements CommandExecutor {
                         try {
                             page = Integer.parseInt(args[1]);
                         } catch (Exception ex) {
-                            SkyBlockCore.Instance.sendCommandReply(player, "Commands.Common.InvalidPage");
+                            SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPage");
                             return true;
                         }
                     }
 
-                    help(player, page);
+                    help(sender, page);
                     return true;
                 }
-                case "version": {
-                    // Handle commands sent from the console
-                    if (sender instanceof ConsoleCommandSender) {
-                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.NotPlayer");
-                        return true;
-                    }
-                    Player player = (Player) sender;
-
-                    // Check if the player has permission to use the version command
-                    if (!player.hasPermission("skyblockcore.commands.version")) {
-                        SkyBlockCore.Instance.sendCommandReply(player, "General.NoPermission");
+                case "complete": {
+                    // Check if the player has permission to use the help command
+                    if (!sender.hasPermission("skyblockcore.commands.dailyrewards.complete")) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
                     }
 
-                    // Send the current plugin version to the player
-                    Map<String, Object> parameters = new HashMap<>();
-                    parameters.put("version", SkyBlockCore.Instance.getVersion());
-                    SkyBlockCore.Instance.sendCommandReply(player, "Commands.Version.Current", parameters);
+                    if (args.length != 2) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidArguments");
+                        return true;
+                    }
 
-                    // Check if the plugin is up-to-date
-                    SkyBlockCore.Instance.isUpToDate().thenAccept(upToDate -> {
-                        if (upToDate) {
-                            SkyBlockCore.Instance.sendCommandReply(player, "Commands.Version.UpToDate");
-                        } else {
-                            SkyBlockCore.Instance.sendCommandReply(player, "Commands.Version.Outdated", Map.of("link", SkyBlockCore.Instance.getDownloadUrl()));
-                        }
-                    }).exceptionally(e -> {
-                        _logger.error("Failed to determine update status: " + e.getMessage());
-                        return null;
-                    });
+                    OfflinePlayer target = SkyBlockCore.Instance.getServer().getOfflinePlayer(args[1]);
+                    if (!target.hasPlayedBefore() && !target.isOnline()) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPlayer", Map.of("player", args[1]));
+                        return true;
+                    }
+
+                    var playerData = SkyBlockCore.database().getPlayerData(target.getUniqueId()).orElse(null);
+                    if (playerData == null) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPlayerData", Map.of("player", args[1]));
+                        return true;
+                    }
+
+                    playerData.setDailyRewardClaimed(true);
+                    SkyBlockCore.database().updatePlayerData(playerData);
+                    SkyBlockCore.Instance.sendCommandReply(sender, "Commands.DailyRewards.Complete.Success", Map.of(
+                                    "player", args[1]
+                            )
+                    );
                     return true;
                 }
-                case "reload": {
-                    // Handle commands sent from the console
-                    if (sender instanceof ConsoleCommandSender) {
-                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.NotPlayer");
-                        return true;
-                    }
-                    Player player = (Player) sender;
-
-                    // Check if the player has permission to use the reload command
-                    if (!player.hasPermission("skyblockcore.commands.reload")) {
-                        SkyBlockCore.Instance.sendCommandReply(player, "General.NoPermission");
+                case "reset": {
+                    // Check if the player has permission to use the help command
+                    if (!sender.hasPermission("skyblockcore.commands.dailyrewards.reset")) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
                     }
 
-                    // Reload the plugin configuration
-                    SkyBlockCore.Instance.reload();
-                    SkyBlockCore.Instance.sendCommandReply(player, "Commands.Reload.Done");
+                    if (args.length != 2) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidArguments");
+                        return true;
+                    }
+
+                    OfflinePlayer target = SkyBlockCore.Instance.getServer().getOfflinePlayer(args[1]);
+                    if (!target.hasPlayedBefore() && !target.isOnline()) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPlayer", Map.of("player", args[1]));
+                        return true;
+                    }
+
+                    var playerData = SkyBlockCore.database().getPlayerData(target.getUniqueId()).orElse(null);
+                    if (playerData == null) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPlayerData", Map.of("player", args[1]));
+                        return true;
+                    }
+
+                    playerData.setDailyRewardClaimed(false);
+                    SkyBlockCore.database().updatePlayerData(playerData);
+                    SkyBlockCore.Instance.sendCommandReply(sender, "Commands.DailyRewards.Reset.Success", Map.of(
+                                    "player", args[1]
+                            )
+                    );
                     return true;
                 }
             }
@@ -143,11 +154,6 @@ public class CommandSkyBlockCore implements CommandExecutor {
             return true;
         }
 
-        // Default to the help command if no arguments are provided
-        if (!sender.hasPermission("skyblockcore.commands.help")) {
-            SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
-            return true;
-        }
         help(sender, 1);
         return true;
     }

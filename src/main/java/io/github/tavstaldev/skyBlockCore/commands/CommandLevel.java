@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public class CommandLevel implements CommandExecutor {
-    private final PluginLogger _logger = SkyBlockCore.Logger().withModule(CommandLevel.class);
+    private final PluginLogger _logger = SkyBlockCore.logger().withModule(CommandLevel.class);
     @SuppressWarnings("FieldCanBeLocal")
     private final String baseCommand = "level";
     private final List<SubCommandData> _subCommands = new ArrayList<>() {
@@ -112,7 +112,7 @@ public class CommandLevel implements CommandExecutor {
                             return true;
                         }
 
-                        var playerData = SkyBlockCore.Database().getPlayerData(target.getUniqueId());
+                        var playerData = SkyBlockCore.database().getPlayerData(target.getUniqueId());
                         if (playerData.isEmpty()) {
                             SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPlayerData", Map.of("player", args[1]));
                             return true;
@@ -133,7 +133,7 @@ public class CommandLevel implements CommandExecutor {
                     }
                     Player player = (Player) sender;
 
-                    var playerData = SkyBlockCore.Database().getPlayerData(player.getUniqueId());
+                    var playerData = SkyBlockCore.database().getPlayerData(player.getUniqueId());
                     if (playerData.isEmpty()) {
                         SkyBlockCore.Instance.sendCommandReply(player, "General.NoPlayerData", Map.of("player", player.getName()));
                         return true;
@@ -170,14 +170,14 @@ public class CommandLevel implements CommandExecutor {
                         return true;
                     }
 
-                    var playerData = SkyBlockCore.Database().getPlayerData(target.getUniqueId()).orElse(null);
+                    var playerData = SkyBlockCore.database().getPlayerData(target.getUniqueId()).orElse(null);
                     if (playerData == null) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPlayerData", Map.of("player", args[1]));
                         return true;
                     }
 
                     playerData.setLevel(playerData.getLevel() + amount);
-                    SkyBlockCore.Database().updatePlayerData(playerData);
+                    SkyBlockCore.database().updatePlayerData(playerData);
                     SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Level.Add.Success", Map.of(
                             "player", args[1],
                             "amount", String.valueOf(amount),
@@ -215,14 +215,14 @@ public class CommandLevel implements CommandExecutor {
                         return true;
                     }
 
-                    var playerData = SkyBlockCore.Database().getPlayerData(target.getUniqueId()).orElse(null);
+                    var playerData = SkyBlockCore.database().getPlayerData(target.getUniqueId()).orElse(null);
                     if (playerData == null) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPlayerData", Map.of("player", args[1]));
                         return true;
                     }
 
                     playerData.setLevel(playerData.getLevel() - amount);
-                    SkyBlockCore.Database().updatePlayerData(playerData);
+                    SkyBlockCore.database().updatePlayerData(playerData);
                     SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Level.Remove.Success", Map.of(
                                     "player", args[1],
                                     "amount", String.valueOf(amount),
@@ -260,14 +260,14 @@ public class CommandLevel implements CommandExecutor {
                         return true;
                     }
 
-                    var playerData = SkyBlockCore.Database().getPlayerData(target.getUniqueId()).orElse(null);
+                    var playerData = SkyBlockCore.database().getPlayerData(target.getUniqueId()).orElse(null);
                     if (playerData == null) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPlayerData", Map.of("player", args[1]));
                         return true;
                     }
 
                     playerData.setLevel(amount);
-                    SkyBlockCore.Database().updatePlayerData(playerData);
+                    SkyBlockCore.database().updatePlayerData(playerData);
                     SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Level.Set.Success", Map.of(
                                     "player", args[1],
                                     "amount", String.valueOf(amount),
@@ -305,14 +305,14 @@ public class CommandLevel implements CommandExecutor {
                         return true;
                     }
 
-                    var playerData = SkyBlockCore.Database().getPlayerData(target.getUniqueId()).orElse(null);
+                    var playerData = SkyBlockCore.database().getPlayerData(target.getUniqueId()).orElse(null);
                     if (playerData == null) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPlayerData", Map.of("player", args[1]));
                         return true;
                     }
 
                     playerData.setLevel(0);
-                    SkyBlockCore.Database().updatePlayerData(playerData);
+                    SkyBlockCore.database().updatePlayerData(playerData);
                     SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Level.Reset.Success", Map.of(
                                     "player", args[1],
                                     "amount", String.valueOf(amount),
@@ -337,7 +337,7 @@ public class CommandLevel implements CommandExecutor {
             return true;
         }
 
-        var playerData = SkyBlockCore.Database().getPlayerData(player.getUniqueId());
+        var playerData = SkyBlockCore.database().getPlayerData(player.getUniqueId());
         if (playerData.isEmpty()) {
             SkyBlockCore.Instance.sendCommandReply(player, "General.NoPlayerData", Map.of("player", player.getName()));
             return true;

@@ -24,3 +24,15 @@ commands:
     description: Check your level XP
     aliases: [szintxp, xpszint, xplevel]
     default: true
+  hourlyrewards:
+    description: Manage hourly rewards
+    aliases: [hourly, hrewards, hreward]
+    default: op
+  dailyrewards:
+    description: Manage daily rewards
+    aliases: [daily, rewards, reward]
+    default: op
+  weeklyrewards:
+    description: Manage weekly rewards
+    aliases: [weekly, wrewards, wreward]
+    default: op
