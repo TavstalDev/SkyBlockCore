@@ -3,6 +3,7 @@ package io.github.tavstaldev.skyBlockCore;
 import io.github.tavstaldev.minecorelib.config.ConfigurationBase;
 import io.github.tavstaldev.skyBlockCore.models.config.AfkPondReward;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class SkyBlockConfig extends ConfigurationBase {
@@ -17,6 +18,9 @@ public class SkyBlockConfig extends ConfigurationBase {
     // Storage
     public String storageType, storageFilename, storageHost, storageDatabase, storageUsername, storagePassword, storageTablePrefix;
     public int storagePort;
+
+    // Reward Reset
+    public LocalDateTime nextDailyReset, nextWeeklyReset, nextHourlyReset;
 
     // AfkPond
     public boolean afkPondEnabled;
@@ -47,6 +51,12 @@ public class SkyBlockConfig extends ConfigurationBase {
         storageUsername = resolveGet("storage.username", "root");
         storagePassword = resolveGet("storage.password", "ascent");
         storageTablePrefix = resolveGet("storage.tablePrefix", "sbc");
+
+        // Reward Reset
+        final var date = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+        nextDailyReset = LocalDateTime.parse(resolveGet("rewardReset.nextDailyReset", date.plusDays(1).toString()));
+        nextWeeklyReset = LocalDateTime.parse(resolveGet("rewardReset.nextWeeklyReset", date.plusDays(8 - date.getDayOfWeek().getValue()).toString()));
+        nextHourlyReset = LocalDateTime.parse(resolveGet("rewardReset.nextHourlyReset", date.plusHours(1).toString()));
 
         // AfkPond
         afkPondEnabled = resolveGet("afkPond.enabled", true);
