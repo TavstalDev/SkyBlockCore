@@ -14,6 +14,7 @@ public class RewardResetTask extends BukkitRunnable {
         if (now.isAfter(config.nextDailyReset)) {
             shouldSave = true;
             config.nextDailyReset = now.withHour(0).withMinute(0).withSecond(0).withNano(0).plusDays(1);
+            config.set("rewardReset.nextDailyReset", config.nextDailyReset.toString());
             database.resetDailyRewards();
         }
         // Reset weekly rewards
@@ -21,12 +22,14 @@ public class RewardResetTask extends BukkitRunnable {
             shouldSave = true;
             config.nextWeeklyReset = now.withHour(0).withMinute(0).withSecond(0).withNano(0)
                     .plusDays(8 - now.getDayOfWeek().getValue());
+            config.set("rewardReset.nextWeeklyReset", config.nextWeeklyReset.toString());
             database.resetWeeklyRewards();
         }
         // Reset hourly rewards
         if (now.isAfter(config.nextHourlyReset)) {
             shouldSave = true;
             config.nextHourlyReset = now.withMinute(0).withSecond(0).withNano(0).plusHours(1);
+            config.set("rewardReset.nextHourlyReset", config.nextHourlyReset.toString());
             database.resetHourlyRewards();
         }
 
