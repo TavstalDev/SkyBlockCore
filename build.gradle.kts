@@ -15,6 +15,7 @@ val hikariCpVersion: String by project
 val caffeineVersion: String by project
 val placeholderApiVersion: String by project
 val worldGuardVersion: String by project
+val spiGuiVersion: String by project
 val projectPackageName = "${project.group}.skyBlockCore"
 
 // Configure Java toolchain and compatibility settings
@@ -45,14 +46,16 @@ dependencies {
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:${worldGuardVersion}")
     // Placeholder API for placeholder support
     compileOnly("me.clip:placeholderapi:${placeholderApiVersion}")
-    // Custom library for core functionality
-    implementation(files("libs/MineCoreLib-${mineCoreLibVersion}.jar"))
     // BanyaszApi
     compileOnly(files("libs/BanyaszApi-1.0.1.jar"))
+    // Custom library for core functionality
+    implementation(files("libs/MineCoreLib-${mineCoreLibVersion}.jar"))
     // HikariCP for database connection pooling
     implementation("com.zaxxer:HikariCP:${hikariCpVersion}")
     // SQL caching
     implementation("com.github.ben-manes.caffeine:caffeine:${caffeineVersion}")
+    // SpiGUI for GUI creation
+    implementation("com.samjakob:SpiGUI:${spiGuiVersion}")
 }
 
 // Disable the default JAR task
@@ -71,6 +74,7 @@ tasks.shadowJar {
     exclude("org/jspecify/**")
     exclude("org/slf4j/**")
 
+    relocate("com.samjakob.spigui", "${projectPackageName}.shadow.spigui")
     relocate("com.zaxxer.hikari", "${projectPackageName}.shadow.hikari")
     relocate("com.github.benmanes.caffeine", "${projectPackageName}.shadow.caffeine")
 }
