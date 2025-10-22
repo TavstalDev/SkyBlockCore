@@ -36,9 +36,9 @@ public class SkyBlockConfig extends ConfigurationBase {
     @Override
     protected void loadDefaults() {
         // General
-        resolve("locale", "hun");
-        resolve("usePlayerLocale", false);
-        checkForUpdates = resolveGet("checkForUpdates", false);
+        resolve("locale", "eng");
+        resolve("usePlayerLocale", true);
+        checkForUpdates = resolveGet("checkForUpdates", true);
         debug = resolveGet("debug", false);
         prefix = resolveGet("prefix", "&bSky&3Block &8»");
 
