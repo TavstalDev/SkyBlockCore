@@ -1,0 +1,128 @@
+General:
+  NoPermission: "%prefix% &cYou don't have permission for this."
+  NoPlayerData: "%prefix% &cNo player data available."
+
+AfkPond:
+  Enter: "%prefix% &aYou entered the AFK pond. You'll get rewards now."
+  Exit: "%prefix% &cYou left the AFK pond. You won't get rewards anymore."
+
+Commands:
+  UnknownError: "%prefix% &cAn unknown error happened. Please report this!"
+  NotPlayer: "%prefix% &cOnly players can use this command."
+  NotConsole: "%prefix% &cOnly the console can use this command."
+  Common:
+    InvalidArguments: "%prefix% &cInvalid arguments."
+    InvalidPage: "%prefix% &cInvalid page number."
+    InvalidPlayer: "%prefix% &cThat player wasn't found."
+  Help:
+    Desc: "Shows info about the commands."
+    Title: "&8&m        &r &bSkyBlock&3Core &7Help &8&m    &r &7Page &3%current_page%&7/&3%max_page% &8&m        &r"
+    Info: |-
+      &r
+      &r  &c&l[]&r &8- &7Required,   &e&l<>&r &8- &7Optional
+      &r
+    Line: "&r  &b/%command% %subcommand%&3%syntax% &8- &7%description%"
+    Bottom: |-
+      &r
+      &8&m                       &r %previous_btn%&3%current_page%&7/&3%max_page%%next_btn% &8&m                       &r
+    PrevBtn: "&b<< "
+    NextBtn: " &b>>"
+  Version:
+    Desc: "Shows the plugin's version."
+    Current: "%prefix% &aYou're running SkyBlockCore version '&3%version%&a'."
+    UpToDate: "%prefix% &aSkyBlockCore is up to date."
+    Outdated: "%prefix% &cSkyBlockCore is outdated. Download it here: &e%link%"
+  Reload:
+    Desc: "Reloads the plugin's config and messages."
+    Done: "%prefix% &aPlugin reloaded."
+  Level:
+    Help:
+      Desc: "Shows info about the level command."
+    Get:
+      Syntax: " <player>"
+      Desc: "Shows your level."
+      YourLevel: "%prefix% &aYour level is: &e%level%"
+      OtherLevel: "%prefix% &e%player%&a's level is: &e%level%"
+    Add:
+      Syntax: " [player] [amount]"
+      Desc: "Adds the specified amount of levels to a player."
+      Success: "%prefix% &aSuccessfully added &e%amount% &alevels to &e%player%&a."
+      NewLevel: "%prefix% &aYour level was updated. Your new level is: &e%level%"
+    Remove:
+      Syntax: " [player] [amount]"
+      Desc: "Removes the specified amount of levels from a player."
+      Success: "%prefix% &aSuccessfully removed &e%amount% &alevels from &e%player%&a."
+      NewLevel: "%prefix% &aYour level was updated. Your new level is: &e%level%"
+    Set:
+      Syntax: " [player] [amount]"
+      Desc: "Sets a player's level to the specified amount."
+      Success: "%prefix% &aSuccessfully set &e%player%&a's level to &e%amount%&a."
+      NewLevel: "%prefix% &aYour level was updated. Your new level is: &e%level%"
+    Reset:
+      Syntax: " [player]"
+      Desc: "Resets a player's level to 0."
+      Success: "%prefix% &aSuccessfully reset &e%player%&a's level to 0."
+      NewLevel: "%prefix% &aYour level was reset to 0."
+  LevelXP:
+    Help:
+      Desc: "Shows info about the levelxp command."
+    Get:
+      Syntax: " <player>"
+      Desc: "Shows your experience points."
+      YourLevel: "%prefix% &aYour experience points are: &e%level%"
+      OtherLevel: "%prefix% &e%player%&a's experience points are: &e%level%"
+    Add:
+      Syntax: " [player] [amount]"
+      Desc: "Adds the specified amount of experience to a player."
+      Success: "%prefix% &aSuccessfully added &e%amount% &aexperience to &e%player%&a."
+      NewLevel: "%prefix% &aYour experience was updated. Your new level xp is: &e%level%"
+    Remove:
+      Syntax: " [player] [amount]"
+      Desc: "Removes the specified amount of experience from a player."
+      Success: "%prefix% &aSuccessfully removed &e%amount% &aexperience from &e%player%&a."
+      NewLevel: "%prefix% &aYour experience was updated. Your new level xp is: &e%level%"
+    Set:
+      Syntax: " [player] [amount]"
+      Desc: "Sets a player's experience to the specified amount."
+      Success: "%prefix% &aSuccessfully set &e%player%&a's experience to &e%amount%&a."
+      NewLevel: "%prefix% &aYour experience was updated. Your new level xp is: &e%level%"
+    Reset:
+      Syntax: " [player]"
+      Desc: "Resets a player's experience to 0."
+      Success: "%prefix% &aSuccessfully reset &e%player%&a's experience to 0."
+      NewLevel: "%prefix% &aYour experience was reset to 0."
+  HourlyRewards:
+    Help:
+      Desc: "Shows info about the hourlyrewards command."
+    Complete:
+      Syntax: " <player>"
+      Success: "%prefix% &aSuccessfully set %player%'s hourly reward to claimed."
+    Reset:
+      Syntax: " <player>"
+      Success: "%prefix% &aSuccessfully reset %player%'s hourly reward."
+  DailyRewards:
+    Help:
+      Desc: "Shows info about the dailyrewards command."
+    Complete:
+      Syntax: " <player>"
+      Success: "%prefix% &aSuccessfully set %player%'s daily reward to claimed."
+    Reset:
+      Syntax: " <player>"
+      Success: "%prefix% &aSuccessfully reset %player%'s daily reward."
+  WeeklyRewards:
+    Help:
+      Desc: "Shows info about the weeklyrewards command."
+    Complete:
+      Syntax: " <player>"
+      Success: "%prefix% &aSuccessfully set %player%'s weekly reward to claimed."
+    Reset:
+      Syntax: " <player>"
+      Success: "%prefix% &aSuccessfully reset %player%'s weekly reward."
+
+Time:
+  Days: "%time% days"
+  Hours: "%time% hours"
+  Minutes: "%time% minutes"
+  Seconds: "%time% seconds"
+
+FileVersion: 1
