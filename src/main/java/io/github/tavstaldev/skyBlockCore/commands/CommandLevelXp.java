@@ -19,38 +19,42 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Handles the /levelxp command and its subcommands.
+ * Provides functionality for managing player experience levels, including help, getting, adding, removing, setting, and resetting experience.
+ */
 public class CommandLevelXp implements CommandExecutor {
-    private final PluginLogger _logger = SkyBlockCore.logger().withModule(CommandLevelXp.class);
     @SuppressWarnings("FieldCanBeLocal")
-    private final String baseCommand = "levelxp";
+    private final PluginLogger _logger = SkyBlockCore.logger().withModule(CommandLevelXp.class); // Logger for command-related operations.
+    private final String baseCommand = "levelxp"; // Base command name.
     private final List<SubCommandData> _subCommands = new ArrayList<>() {
         {
-            // HELP
+            // HELP subcommand
             add(new SubCommandData("help", "skyblockcore.commands.levelxp.help", Map.of(
                     "syntax", "",
                     "description", "Commands.LevelXP.Help.Desc"
             )));
-            // GET
+            // GET subcommand
             add(new SubCommandData("get", "skyblockcore.commands.levelxp.get", Map.of(
                     "syntax", "Commands.LevelXP.Get.Syntax",
                     "description", "Commands.LevelXP.Get.Desc"
             )));
-            // ADD
+            // ADD subcommand
             add(new SubCommandData("add", "skyblockcore.commands.levelxp.add", Map.of(
                     "syntax", "Commands.LevelXP.Add.Syntax",
                     "description", "Commands.LevelXP.Add.Desc"
             )));
-            // REMOVE
+            // REMOVE subcommand
             add(new SubCommandData("remove", "skyblockcore.commands.levelxp.remove", Map.of(
                     "syntax", "Commands.LevelXP.Remove.Syntax",
                     "description", "Commands.LevelXP.Remove.Desc"
             )));
-            // SET
+            // SET subcommand
             add(new SubCommandData("set", "skyblockcore.commands.levelxp.set", Map.of(
                     "syntax", "Commands.LevelXP.Set.Syntax",
                     "description", "Commands.LevelXP.Set.Desc"
             )));
-            // RESET
+            // RESET subcommand
             add(new SubCommandData("reset", "skyblockcore.commands.levelxp.reset", Map.of(
                     "syntax", "Commands.LevelXP.Reset.Syntax",
                     "description", "Commands.LevelXP.Reset.Desc"
@@ -58,6 +62,10 @@ public class CommandLevelXp implements CommandExecutor {
         }
     };
 
+    /**
+     * Initializes the /levelxp command by setting its executor.
+     * Logs an error if the command is not found in the plugin.yml file.
+     */
     public CommandLevelXp() {
         var command = SkyBlockCore.Instance.getCommand(baseCommand);
         if (command == null) {
@@ -67,6 +75,15 @@ public class CommandLevelXp implements CommandExecutor {
         command.setExecutor(this);
     }
 
+    /**
+     * Handles the execution of the /levelxp command and its subcommands.
+     *
+     * @param sender  The sender of the command (player or console).
+     * @param command The command being executed.
+     * @param label   The alias of the command used.
+     * @param args    The arguments provided with the command.
+     * @return True if the command was successfully executed, false otherwise.
+     */
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args) {
         // Handle subcommands based on the first argument
@@ -95,7 +112,7 @@ public class CommandLevelXp implements CommandExecutor {
                     return true;
                 }
                 case "get": {
-                    // Check if the player has permission to use the help command
+                    // Check if the player has permission to use the get command
                     if (!sender.hasPermission("skyblockcore.commands.levelxp.get")) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
@@ -145,7 +162,7 @@ public class CommandLevelXp implements CommandExecutor {
                     return true;
                 }
                 case "add": {
-                    // Check if the player has permission to use the help command
+                    // Check if the player has permission to use the add command
                     if (!sender.hasPermission("skyblockcore.commands.levelxp.add")) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
@@ -190,7 +207,7 @@ public class CommandLevelXp implements CommandExecutor {
                     return true;
                 }
                 case "remove": {
-                    // Check if the player has permission to use the help command
+                    // Check if the player has permission to use the remove command
                     if (!sender.hasPermission("skyblockcore.commands.levelxp.remove")) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
@@ -235,7 +252,7 @@ public class CommandLevelXp implements CommandExecutor {
                     return true;
                 }
                 case "set": {
-                    // Check if the player has permission to use the help command
+                    // Check if the player has permission to use the set command
                     if (!sender.hasPermission("skyblockcore.commands.levelxp.set")) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
@@ -280,7 +297,7 @@ public class CommandLevelXp implements CommandExecutor {
                     return true;
                 }
                 case "reset": {
-                    // Check if the player has permission to use the help command
+                    // Check if the player has permission to use the reset command
                     if (!sender.hasPermission("skyblockcore.commands.levelxp.reset")) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
@@ -349,6 +366,12 @@ public class CommandLevelXp implements CommandExecutor {
         return true;
     }
 
+    /**
+     * Displays the help menu for the /levelxp command.
+     *
+     * @param sender The sender of the command.
+     * @param page   The page number of the help menu to display.
+     */
     private void help(CommandSender sender, int page) {
         int maxPage = 1 + (_subCommands.size() / 15);
 

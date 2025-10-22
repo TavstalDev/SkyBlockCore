@@ -17,25 +17,33 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class MySqlDatabase implements  IDatabase {
-    private final PluginLogger _logger = SkyBlockCore.logger().withModule(MySqlDatabase.class);
-    private HikariDataSource _dataSource;
-    private SkyBlockConfig _config;
+/**
+ * Implements the IDatabase interface using a MySQL database.
+ * Provides methods for managing player data, rewards, and schema validation.
+ * Utilizes HikariCP for connection pooling and Caffeine for caching.
+ */
+public class MySqlDatabase implements IDatabase {
+    private final PluginLogger _logger = SkyBlockCore.logger().withModule(MySqlDatabase.class); // Logger for database operations.
+    private HikariDataSource _dataSource; // HikariCP data source for database connections.
+    private SkyBlockConfig _config; // Configuration for database settings.
     private final Cache<@NotNull UUID, PlayerData> _playerCache = Caffeine.newBuilder()
-            .maximumSize(1000)
-            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .maximumSize(1000) // Maximum cache size.
+            .expireAfterWrite(5, TimeUnit.MINUTES) // Cache expiration time.
             .build();
 
     //#region SQL Statements
-    private String addPlayerDataSql;
-    private String updatePlayerDataSql;
-    private String removePlayerDataSql;
-    private String getPlayerDataSql;
-    private String resetDailyRewardsSql;
-    private String resetWeeklyRewardsSql;
-    private String resetHourlyRewardsSql;
+    private String addPlayerDataSql; // SQL statement for adding player data.
+    private String updatePlayerDataSql; // SQL statement for updating player data.
+    private String removePlayerDataSql; // SQL statement for removing player data.
+    private String getPlayerDataSql; // SQL statement for retrieving player data.
+    private String resetDailyRewardsSql; // SQL statement for resetting daily rewards.
+    private String resetWeeklyRewardsSql; // SQL statement for resetting weekly rewards.
+    private String resetHourlyRewardsSql; // SQL statement for resetting hourly rewards.
     //#endregion
 
+    /**
+     * Loads the database by initializing the data source and updating SQL statements.
+     */
     @Override
     public void load() {
         _config = SkyBlockCore.config();
@@ -43,6 +51,9 @@ public class MySqlDatabase implements  IDatabase {
         update();
     }
 
+    /**
+     * Updates the SQL statements based on the current configuration.
+     */
     @Override
     public void update() {
         addPlayerDataSql = String.format("INSERT INTO %s_players (PlayerId, Experience, Level, Factories, " +
@@ -51,9 +62,9 @@ public class MySqlDatabase implements  IDatabase {
                 _config.storageTablePrefix);
 
         updatePlayerDataSql = String.format("UPDATE %s_players SET Experience = ?, Level = ?, Factories = ?, " +
-                        "CompletedFactories = ?, MaxFactories = ?, OnGoingFactories = ?, FactoryResearch = ?, " +
-                        "DailyRewardClaimed = ?, WeeklyRewardClaimed = ?, HourlyRewardClaimed = ? " +
-                        "WHERE PlayerId = ?;", _config.storageTablePrefix);
+                "CompletedFactories = ?, MaxFactories = ?, OnGoingFactories = ?, FactoryResearch = ?, " +
+                "DailyRewardClaimed = ?, WeeklyRewardClaimed = ?, HourlyRewardClaimed = ? " +
+                "WHERE PlayerId = ?;", _config.storageTablePrefix);
         removePlayerDataSql = String.format("DELETE FROM %s_players WHERE PlayerId = ?;", _config.storageTablePrefix);
         getPlayerDataSql = String.format("SELECT * FROM %s_players WHERE PlayerId = ?;", _config.storageTablePrefix);
 
@@ -62,6 +73,9 @@ public class MySqlDatabase implements  IDatabase {
         resetHourlyRewardsSql = String.format("UPDATE %s_players SET HourlyRewardClaimed = FALSE;", _config.storageTablePrefix);
     }
 
+    /**
+     * Unloads the database by closing the data source and releasing resources.
+     */
     @Override
     public void unload() {
         if (_dataSource != null) {
@@ -70,6 +84,11 @@ public class MySqlDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Creates and configures a HikariCP data source for database connections.
+     *
+     * @return The configured HikariDataSource instance.
+     */
     private HikariDataSource createDataSource() {
         try {
             HikariConfig config = new HikariConfig();
@@ -79,8 +98,8 @@ public class MySqlDatabase implements  IDatabase {
                     _config.storageDatabase));
             config.setUsername(_config.storageUsername);
             config.setPassword(_config.storagePassword);
-            config.setMaximumPoolSize(10); // Pool size defaults to 10
-            config.setMaxLifetime(30000);
+            config.setMaximumPoolSize(10); // Pool size defaults to 10.
+            config.setMaxLifetime(30000); // Maximum lifetime of a connection in milliseconds.
             return new HikariDataSource(config);
         } catch (Exception ex) {
             _logger.error(String.format("Unknown error happened during the creation of database connection...\n%s", ex.getMessage()));
@@ -88,6 +107,9 @@ public class MySqlDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Ensures the database schema is up-to-date by creating necessary tables if they do not exist.
+     */
     @Override
     public void checkSchema() {
         try (Connection connection = _dataSource.getConnection()) {
@@ -112,6 +134,11 @@ public class MySqlDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Adds a new player's data to the database and caches it.
+     *
+     * @param playerId The unique identifier of the player.
+     */
     @Override
     public void addPlayerData(UUID playerId) {
         try (Connection connection = _dataSource.getConnection()) {
@@ -137,6 +164,11 @@ public class MySqlDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Updates an existing player's data in the database and cache.
+     *
+     * @param newData The updated player data.
+     */
     @Override
     public void updatePlayerData(PlayerData newData) {
         try (Connection connection = _dataSource.getConnection()) {
@@ -150,7 +182,7 @@ public class MySqlDatabase implements  IDatabase {
                 statement.setInt(7, newData.getFactoryResearch()); // FactoryResearch
                 statement.setBoolean(8, newData.isDailyRewardClaimed()); // DailyRewardClaimed
                 statement.setBoolean(9, newData.isWeeklyRewardClaimed()); // WeeklyRewardClaimed
-                statement.setBoolean(10, newData.isHourlyRewardClaimed()); // MonthlyReward
+                statement.setBoolean(10, newData.isHourlyRewardClaimed()); // HourlyRewardClaimed
                 statement.setString(11, newData.getUuid().toString());
                 statement.executeUpdate();
             }
@@ -161,6 +193,11 @@ public class MySqlDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Removes a player's data from the database and cache.
+     *
+     * @param playerId The unique identifier of the player.
+     */
     @Override
     public void removePlayerData(UUID playerId) {
         try (Connection connection = _dataSource.getConnection()) {
@@ -177,6 +214,12 @@ public class MySqlDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Retrieves a player's data from the database or cache.
+     *
+     * @param playerId The unique identifier of the player.
+     * @return An Optional containing the player's data, or empty if not found.
+     */
     @Override
     public Optional<PlayerData> getPlayerData(UUID playerId) {
         var data = _playerCache.getIfPresent(playerId);
@@ -215,6 +258,9 @@ public class MySqlDatabase implements  IDatabase {
         return Optional.ofNullable(data);
     }
 
+    /**
+     * Resets the daily rewards for all players in the database and invalidates the cache.
+     */
     @Override
     public void resetDailyRewards() {
         try (Connection connection = _dataSource.getConnection()) {
@@ -228,6 +274,9 @@ public class MySqlDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Resets the weekly rewards for all players in the database and invalidates the cache.
+     */
     @Override
     public void resetWeeklyRewards() {
         try (Connection connection = _dataSource.getConnection()) {
@@ -241,6 +290,9 @@ public class MySqlDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Resets the hourly rewards for all players in the database and invalidates the cache.
+     */
     @Override
     public void resetHourlyRewards() {
         try (Connection connection = _dataSource.getConnection()) {

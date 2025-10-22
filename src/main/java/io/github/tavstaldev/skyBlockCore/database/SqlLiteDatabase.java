@@ -16,30 +16,41 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class SqlLiteDatabase implements  IDatabase {
-    private final PluginLogger _logger = SkyBlockCore.logger().withModule(SqlLiteDatabase.class);
-    private SkyBlockConfig _config;
+/**
+ * Implements the IDatabase interface using an SQLite database.
+ * Provides methods for managing player data, rewards, and schema validation.
+ * Utilizes Caffeine for caching player data.
+ */
+public class SqlLiteDatabase implements IDatabase {
+    private final PluginLogger _logger = SkyBlockCore.logger().withModule(SqlLiteDatabase.class); // Logger for database operations.
+    private SkyBlockConfig _config; // Configuration for database settings.
     private final Cache<@NotNull UUID, PlayerData> _playerCache = Caffeine.newBuilder()
-            .maximumSize(1000)
-            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .maximumSize(1000) // Maximum cache size.
+            .expireAfterWrite(5, TimeUnit.MINUTES) // Cache expiration time.
             .build();
 
     //#region SQL Statements
-    private String addPlayerDataSql;
-    private String updatePlayerDataSql;
-    private String removePlayerDataSql;
-    private String getPlayerDataSql;
-    private String resetDailyRewardsSql;
-    private String resetWeeklyRewardsSql;
-    private String resetHourlyRewardsSql;
+    private String addPlayerDataSql; // SQL statement for adding player data.
+    private String updatePlayerDataSql; // SQL statement for updating player data.
+    private String removePlayerDataSql; // SQL statement for removing player data.
+    private String getPlayerDataSql; // SQL statement for retrieving player data.
+    private String resetDailyRewardsSql; // SQL statement for resetting daily rewards.
+    private String resetWeeklyRewardsSql; // SQL statement for resetting weekly rewards.
+    private String resetHourlyRewardsSql; // SQL statement for resetting hourly rewards.
     //#endregion
 
+    /**
+     * Loads the database by initializing the configuration and updating SQL statements.
+     */
     @Override
     public void load() {
         _config = SkyBlockCore.config();
         update();
     }
 
+    /**
+     * Updates the SQL statements based on the current configuration.
+     */
     @Override
     public void update() {
         addPlayerDataSql = String.format("INSERT INTO %s_players (PlayerId, Experience, Level, Factories, " +
@@ -59,9 +70,17 @@ public class SqlLiteDatabase implements  IDatabase {
         resetHourlyRewardsSql = String.format("UPDATE %s_players SET HourlyRewardClaimed = 0;", _config.storageTablePrefix);
     }
 
+    /**
+     * Unloads the database. Currently, this method does nothing.
+     */
     @Override
     public void unload() {/* ignored */}
 
+    /**
+     * Creates a connection to the SQLite database.
+     *
+     * @return A Connection object to the SQLite database, or null if an error occurs.
+     */
     private Connection createConnection() {
         try {
             if (_config == null)
@@ -74,6 +93,9 @@ public class SqlLiteDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Ensures the database schema is up-to-date by creating necessary tables if they do not exist.
+     */
     @Override
     public void checkSchema() {
         try (Connection connection = createConnection()) {
@@ -103,6 +125,11 @@ public class SqlLiteDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Adds a new player's data to the database and caches it.
+     *
+     * @param playerId The unique identifier of the player.
+     */
     @Override
     public void addPlayerData(UUID playerId) {
         try (Connection connection = createConnection()) {
@@ -133,6 +160,11 @@ public class SqlLiteDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Updates an existing player's data in the database and cache.
+     *
+     * @param newData The updated player data.
+     */
     @Override
     public void updatePlayerData(PlayerData newData) {
         try (Connection connection = createConnection()) {
@@ -151,7 +183,7 @@ public class SqlLiteDatabase implements  IDatabase {
                 statement.setInt(7, newData.getFactoryResearch()); // FactoryResearch
                 statement.setInt(8, newData.isDailyRewardClaimed() ? 1 : 0); // DailyRewardClaimed
                 statement.setInt(9, newData.isWeeklyRewardClaimed() ? 1 : 0); // WeeklyRewardClaimed
-                statement.setInt(10, newData.isHourlyRewardClaimed() ? 1 : 0); // MonthlyReward
+                statement.setInt(10, newData.isHourlyRewardClaimed() ? 1 : 0); // HourlyRewardClaimed
                 statement.setString(11, newData.getUuid().toString());
                 statement.executeUpdate();
             }
@@ -162,6 +194,11 @@ public class SqlLiteDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Removes a player's data from the database and cache.
+     *
+     * @param playerId The unique identifier of the player.
+     */
     @Override
     public void removePlayerData(UUID playerId) {
         try (Connection connection = createConnection()) {
@@ -183,6 +220,12 @@ public class SqlLiteDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Retrieves a player's data from the database or cache.
+     *
+     * @param playerId The unique identifier of the player.
+     * @return An Optional containing the player's data, or empty if not found.
+     */
     @Override
     public Optional<PlayerData> getPlayerData(UUID playerId) {
         var data = _playerCache.getIfPresent(playerId);
@@ -226,6 +269,9 @@ public class SqlLiteDatabase implements  IDatabase {
         return Optional.ofNullable(data);
     }
 
+    /**
+     * Resets the daily rewards for all players in the database and invalidates the cache.
+     */
     @Override
     public void resetDailyRewards() {
         try (Connection connection = createConnection()) {
@@ -244,6 +290,9 @@ public class SqlLiteDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Resets the weekly rewards for all players in the database and invalidates the cache.
+     */
     @Override
     public void resetWeeklyRewards() {
         try (Connection connection = createConnection()) {
@@ -262,6 +311,9 @@ public class SqlLiteDatabase implements  IDatabase {
         }
     }
 
+    /**
+     * Resets the hourly rewards for all players in the database and invalidates the cache.
+     */
     @Override
     public void resetHourlyRewards() {
         try (Connection connection = createConnection()) {

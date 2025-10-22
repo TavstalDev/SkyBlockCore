@@ -18,28 +18,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Handles the /hourlyrewards command and its subcommands.
+ * Provides functionality for managing hourly rewards, including help, claiming, and resetting rewards.
+ */
 public class CommandHourlyRewards implements CommandExecutor {
-    private final PluginLogger _logger = SkyBlockCore.logger().withModule(CommandHourlyRewards.class);
     @SuppressWarnings("FieldCanBeLocal")
-    private final String baseCommand = "hourlyrewards";
+    private final PluginLogger _logger = SkyBlockCore.logger().withModule(CommandHourlyRewards.class); // Logger for command-related operations.
+    private final String baseCommand = "hourlyrewards"; // Base command name.
     private final List<SubCommandData> _subCommands = new ArrayList<>() {
         {
-            // HELP
+            // HELP subcommand
             add(new SubCommandData("help", "skyblockcore.commands.hourlyrewards.help", Map.of(
                     "syntax", "",
                     "description", "Commands.HourlyRewards.Help.Desc"
             )));
-            // GET
+            // GET subcommand
             add(new SubCommandData("get", "skyblockcore.commands.hourlyrewards.get", Map.of(
                     "syntax", "Commands.HourlyRewards.Get.Syntax",
                     "description", "Commands.HourlyRewards.Get.Desc"
             )));
-            // COMPLETE
+            // COMPLETE subcommand
             add(new SubCommandData("add", "skyblockcore.commands.hourlyrewards.complete", Map.of(
                     "syntax", "Commands.HourlyRewards.Complete.Syntax",
                     "description", "Commands.HourlyRewards.Complete.Desc"
             )));
-            // RESET
+            // RESET subcommand
             add(new SubCommandData("reset", "skyblockcore.commands.hourlyrewards.reset", Map.of(
                     "syntax", "Commands.HourlyRewards.Reset.Syntax",
                     "description", "Commands.HourlyRewards.Reset.Desc"
@@ -47,6 +51,10 @@ public class CommandHourlyRewards implements CommandExecutor {
         }
     };
 
+    /**
+     * Initializes the /hourlyrewards command by setting its executor.
+     * Logs an error if the command is not found in the plugin.yml file.
+     */
     public CommandHourlyRewards() {
         var command = SkyBlockCore.Instance.getCommand(baseCommand);
         if (command == null) {
@@ -56,6 +64,15 @@ public class CommandHourlyRewards implements CommandExecutor {
         command.setExecutor(this);
     }
 
+    /**
+     * Handles the execution of the /hourlyrewards command and its subcommands.
+     *
+     * @param sender  The sender of the command (player or console).
+     * @param command The command being executed.
+     * @param label   The alias of the command used.
+     * @param args    The arguments provided with the command.
+     * @return True if the command was successfully executed, false otherwise.
+     */
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args) {
         // Handle subcommands based on the first argument
@@ -84,7 +101,7 @@ public class CommandHourlyRewards implements CommandExecutor {
                     return true;
                 }
                 case "complete": {
-                    // Check if the player has permission to use the help command
+                    // Check if the player has permission to use the complete command
                     if (!sender.hasPermission("skyblockcore.commands.hourlyrewards.complete")) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
@@ -116,7 +133,7 @@ public class CommandHourlyRewards implements CommandExecutor {
                     return true;
                 }
                 case "reset": {
-                    // Check if the player has permission to use the help command
+                    // Check if the player has permission to use the reset command
                     if (!sender.hasPermission("skyblockcore.commands.hourlyrewards.reset")) {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
@@ -158,6 +175,12 @@ public class CommandHourlyRewards implements CommandExecutor {
         return true;
     }
 
+    /**
+     * Displays the help menu for the /hourlyrewards command.
+     *
+     * @param sender The sender of the command.
+     * @param page   The page number of the help menu to display.
+     */
     private void help(CommandSender sender, int page) {
         int maxPage = 1 + (_subCommands.size() / 15);
 
