@@ -88,7 +88,7 @@ public final class SkyBlockCore extends PluginBase {
         Instance = this;
         _config = new SkyBlockConfig();
         _config.load();
-        _translator = new PluginTranslator(this, new String[]{"hun"});
+        _translator = new PluginTranslator(this, new String[]{"eng", "hun"});
         _logger.info(String.format("Loading %s...", getProjectName()));
 
         // Check Minecraft version compatibility
