@@ -5,6 +5,7 @@ General:
 AfkPond:
   Enter: "%prefix% &aBeléptél az AFK tóba. Mostantól kapsz nyereményeket."
   Exit: "%prefix% &cKiléptél az AFK tóból. Már nem kapsz nyereményeket."
+  ActionBar: "&bAFK tó &8» &e%time%"
 
 Commands:
   UnknownError: "%prefix% &cIsmeretlen hiba történt. Kérlek, jelentsd!"

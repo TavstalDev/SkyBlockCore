@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,7 +24,8 @@ public class GameTimeTask extends BukkitRunnable {
     @Override
     public void run() {
         // Check if game time rewards are enabled in the configuration
-        if (!SkyBlockCore.config().gameTimeRewardEnabled) {
+        var config = SkyBlockCore.config();
+        if (!config.gameTimeRewardEnabled) {
             // Game time rewards are disabled, cancel the task
             this.cancel();
             return;
@@ -33,6 +33,7 @@ public class GameTimeTask extends BukkitRunnable {
 
         // Set to store players eligible for rewards
         Set<UUID> playersToBeRewarded = new HashSet<>();
+        final var now = LocalDateTime.now();
         for (var playerId : PlayerCacheManager.getPlayersJoinTime().keySet()) {
             // Retrieve the player's join time
             var joinTime = PlayerCacheManager.getJoinTime(playerId);
@@ -40,17 +41,12 @@ public class GameTimeTask extends BukkitRunnable {
                 continue;
 
             // Calculate the duration the player has been online
-            var duration = Duration.between(joinTime, LocalDateTime.now()).abs();
-            var minutes = duration.toMinutes();
-            if (minutes < 1)
-                continue;
-
-            // Check if the player's online time meets the reward interval
-            if (minutes % SkyBlockCore.config().gameTimeRewardRequiredOnlineTime != 0)
+            if (now.isBefore(joinTime))
                 continue;
 
             // Add the player to the reward list
             playersToBeRewarded.add(playerId);
+            PlayerCacheManager.addJoinTime(playerId, now.plusMinutes(config.gameTimeRewardRequiredOnlineTime));
         }
 
         // If no players are eligible for rewards, exit
@@ -63,7 +59,7 @@ public class GameTimeTask extends BukkitRunnable {
                 // Retrieve the player object
                 Player player = Bukkit.getPlayer(playerId);
                 if (player == null || !player.isOnline())
-                    return; // Player might have logged out between threads
+                    continue; // Player might have logged out between threads
 
                 // Execute the reward command for the player
                 Bukkit.getServer().dispatchCommand(

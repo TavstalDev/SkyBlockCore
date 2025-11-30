@@ -24,12 +24,10 @@ public class SkyBlockConfig extends ConfigurationBase {
 
     // AfkPond
     public boolean afkPondEnabled;
-    public long afkPondInterval;
     public HashSet<AfkPondReward> afkPondRewards;
 
     // GameTime reward
     public boolean gameTimeRewardEnabled;
-    public long gameTimeRewardInterval;
     public long gameTimeRewardRequiredOnlineTime;
     public String gameTimeRewardCommand;
 
@@ -60,8 +58,6 @@ public class SkyBlockConfig extends ConfigurationBase {
 
         // AfkPond
         afkPondEnabled = resolveGet("afkPond.enabled", true);
-        afkPondInterval = resolveGet("afkPond.interval", 60);
-        resolveComment("afkPond.interval", List.of("Interval in seconds to check for players in the afk pond"));
         //#region Load AfkPond rewards
         afkPondRewards = new LinkedHashSet<>();
         // Default rewards
@@ -88,11 +84,11 @@ public class SkyBlockConfig extends ConfigurationBase {
             if (!(rawReward instanceof HashMap<?, ?> map))
                 continue;
             try {
-                var interval = (long) map.get("interval");
+                var interval = (Integer) map.get("interval");
                 var command = (String) map.get("command");
                 afkPondRewards.add(new AfkPondReward(interval, command));
-            } catch (Exception ignored) {
-                SkyBlockCore.Instance.getLogger().warning("Invalid afkPond reward configuration, skipping...");
+            } catch (Exception ex) {
+                SkyBlockCore.Instance.getLogger().warning("Invalid afkPond reward configuration: \n" + ex);
             }
         }
         resolveComment("afkPond.rewards", List.of("List of rewards to give to players in the afk pond", "interval: Interval in minutes to give the reward", "command: Command to execute, %player% will be replaced with the player's name"));
@@ -100,8 +96,6 @@ public class SkyBlockConfig extends ConfigurationBase {
 
         // GameTime reward
         gameTimeRewardEnabled = resolveGet("gameTimeReward.enabled", true);
-        gameTimeRewardInterval = resolveGet("gameTimeReward.interval", 60);
-        resolveComment("gameTimeReward.interval", List.of("Interval in seconds to check for online time and give rewards"));
         gameTimeRewardRequiredOnlineTime = resolveGet("gameTimeReward.requiredOnlineTime", 60);
         resolveComment("gameTimeReward.requiredOnlineTime", List.of("Required online time in minutes to get the reward"));
         gameTimeRewardCommand = resolveGet("gameTimeReward.command", "levelxp add %player% 1");

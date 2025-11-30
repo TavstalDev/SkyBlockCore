@@ -1,5 +1,6 @@
 package io.github.tavstaldev.skyBlockCore.managers;
 
+import io.github.tavstaldev.skyBlockCore.SkyBlockCore;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
@@ -12,10 +13,11 @@ import java.util.*;
 public class PlayerCacheManager {
     // Stores the players currently in the AFK pond and their respective times.
     private static final Map<UUID, LocalDateTime> _playersInAfkPond = new HashMap<>();
+    private static final Map<UUID, Map<String, LocalDateTime>> _playersAfkRewards = new HashMap<>();
     // Stores the join times of players.
-    private static final Map<UUID, LocalDateTime> _playersJoinTime = new HashMap<>();
+    private static final Map<UUID, LocalDateTime> _playerNextGameRewardTime = new HashMap<>();
 
-    //#region Protections
+    //#region Afk Pond
 
     /**
      * Adds a player to the AFK pond with the specified time.
@@ -24,7 +26,12 @@ public class PlayerCacheManager {
      * @param time     The time the player entered the AFK pond.
      */
     public static void addToAfkPond(UUID playerId, LocalDateTime time) {
+
         _playersInAfkPond.put(playerId, time);
+        var config = SkyBlockCore.config();
+        for (var reward : config.afkPondRewards) {
+            addAfkRewardTime(playerId, reward.command, time.plusMinutes(reward.interval));
+        }
     }
 
     /**
@@ -34,6 +41,7 @@ public class PlayerCacheManager {
      */
     public static void removeFromAfkPond(UUID playerId) {
         _playersInAfkPond.remove(playerId);
+        clearAfkRewardTimes(playerId);
     }
 
     /**
@@ -54,6 +62,38 @@ public class PlayerCacheManager {
     public static Map<UUID, LocalDateTime> getPlayersInAfkPond() {
         return Collections.unmodifiableMap(_playersInAfkPond);
     }
+
+    public static void addAfkRewardTime(UUID playerId, String rewardKey, LocalDateTime time) {
+       if  (_playersAfkRewards.containsKey(playerId)) {
+              _playersAfkRewards.get(playerId).put(rewardKey, time);
+         } else {
+              Map<String, LocalDateTime> rewards = new HashMap<>();
+              rewards.put(rewardKey, time);
+              _playersAfkRewards.put(playerId, rewards);
+       }
+    }
+
+    public static void removeAfkRewardTime(UUID playerId, String rewardKey) {
+        Map<String, LocalDateTime> rewards = _playersAfkRewards.get(playerId);
+        if (rewards != null) {
+            rewards.remove(rewardKey);
+            if (rewards.isEmpty()) {
+                _playersAfkRewards.remove(playerId);
+            }
+        }
+    }
+
+    public static void clearAfkRewardTimes(UUID playerId) {
+        _playersAfkRewards.remove(playerId);
+    }
+
+    public static @Nullable LocalDateTime getAfkRewardTime(UUID playerId, String rewardKey) {
+        Map<String, LocalDateTime> rewards = _playersAfkRewards.get(playerId);
+        if (rewards != null) {
+            return rewards.get(rewardKey);
+        }
+        return null;
+    }
     //#endregion
 
     //#region Join Time
@@ -65,7 +105,7 @@ public class PlayerCacheManager {
      * @param time     The time the player joined.
      */
     public static void addJoinTime(UUID playerId, LocalDateTime time) {
-        _playersJoinTime.put(playerId, time);
+        _playerNextGameRewardTime.put(playerId, time);
     }
 
     /**
@@ -74,7 +114,9 @@ public class PlayerCacheManager {
      * @param playerId The unique identifier of the player.
      */
     public static void removeJoinTime(UUID playerId) {
-        _playersJoinTime.remove(playerId);
+        if (!_playerNextGameRewardTime.containsKey(playerId))
+            return;
+        _playerNextGameRewardTime.remove(playerId);
     }
 
     /**
@@ -84,7 +126,7 @@ public class PlayerCacheManager {
      * @return The join time of the player, or null if no join time is recorded.
      */
     public static @Nullable LocalDateTime getJoinTime(UUID playerId) {
-        return _playersJoinTime.get(playerId);
+        return _playerNextGameRewardTime.get(playerId);
     }
 
     /**
@@ -93,7 +135,7 @@ public class PlayerCacheManager {
      * @return An unmodifiable map of players' join times.
      */
     public static Map<UUID, LocalDateTime> getPlayersJoinTime() {
-        return Collections.unmodifiableMap(_playersJoinTime);
+        return Collections.unmodifiableMap(_playerNextGameRewardTime);
     }
     //#endregion
 }

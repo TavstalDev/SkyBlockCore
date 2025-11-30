@@ -5,6 +5,7 @@ General:
 AfkPond:
   Enter: "%prefix% &aYou entered the AFK pond. You'll get rewards now."
   Exit: "%prefix% &cYou left the AFK pond. You won't get rewards anymore."
+  ActionBar: "&bAFK Pond &8» &e%time%"
 
 Commands:
   UnknownError: "%prefix% &cAn unknown error happened. Please report this!"

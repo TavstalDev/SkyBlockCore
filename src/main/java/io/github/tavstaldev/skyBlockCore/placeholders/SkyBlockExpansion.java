@@ -93,9 +93,9 @@ public class SkyBlockExpansion extends PlaceholderExpansion {
             case "daily-reward-claimed" -> data.isDailyRewardClaimed() ? "yes" : "no";
             case "weekly-reward-claimed" -> data.isWeeklyRewardClaimed() ? "yes" : "no";
             case "hourly-reward-claimed" -> data.isHourlyRewardClaimed() ? "yes" : "no";
-            case "daily-reset" -> TimeUtil.formatDuration(player.getPlayer(), config.nextDailyReset);
-            case "weekly-reset" -> TimeUtil.formatDuration(player.getPlayer(), config.nextWeeklyReset);
-            case "hourly-reset" -> TimeUtil.formatDuration(player.getPlayer(), config.nextHourlyReset);
+            case "daily-reset" -> TimeUtil.formatDate(player.getPlayer(), config.nextDailyReset);
+            case "weekly-reset" -> TimeUtil.formatDate(player.getPlayer(), config.nextWeeklyReset);
+            case "hourly-reset" -> TimeUtil.formatDate(player.getPlayer(), config.nextHourlyReset);
             default -> null;
         };
     }

@@ -172,20 +172,20 @@ public final class SkyBlockCore extends PluginBase {
             if (afkPondTask != null && !afkPondTask.isCancelled())
                 afkPondTask.cancel();
             afkPondTask = new AfkPondTask();
-            afkPondTask.runTaskTimerAsynchronously(this, 20 * 60, config().afkPondInterval * 20);
+            afkPondTask.runTaskTimerAsynchronously(this, 0, 20L);
         }
         // GameTime task
         if (config().gameTimeRewardEnabled) {
             if (gameTimeTask != null && !gameTimeTask.isCancelled())
                 gameTimeTask.cancel();
             gameTimeTask = new GameTimeTask();
-            gameTimeTask.runTaskTimerAsynchronously(this, 20 * 60, config().gameTimeRewardInterval * 20);
+            gameTimeTask.runTaskTimerAsynchronously(this, 0, 40L);
         }
         // Reward reset task
         if (rewardResetTask != null && !rewardResetTask.isCancelled())
             rewardResetTask.cancel();
         rewardResetTask = new RewardResetTask();
-        rewardResetTask.runTaskTimerAsynchronously(this, 20 * 60, 20 * 60 * 60); // Run every hour
+        rewardResetTask.runTaskTimerAsynchronously(this, 0, 20L * 60 * 60); // Run every hour
 
         // Initialize SpiGUI
         _logger.debug("Initializing SpiGUI...");
@@ -260,16 +260,16 @@ public final class SkyBlockCore extends PluginBase {
         // Step 2. Start tasks if enabled
         if (config().afkPondEnabled) {
             afkPondTask = new AfkPondTask();
-            afkPondTask.runTaskTimerAsynchronously(this, 0, config().afkPondInterval * 20);
+            afkPondTask.runTaskTimerAsynchronously(this, 0, 20L);
         }
         if (config().gameTimeRewardEnabled) {
             gameTimeTask = new GameTimeTask();
-            gameTimeTask.runTaskTimerAsynchronously(this, 0, config().gameTimeRewardInterval * 20);
+            gameTimeTask.runTaskTimerAsynchronously(this, 0, 40L);
         }
         if (rewardResetTask != null && !rewardResetTask.isCancelled())
             rewardResetTask.cancel();
         rewardResetTask = new RewardResetTask();
-        rewardResetTask.runTaskTimerAsynchronously(this, 0, 20 * 60 * 60); // Run every hour
+        rewardResetTask.runTaskTimerAsynchronously(this, 0, 20L * 60 * 60); // Run every hour
 
         _logger.debug("Configuration reloaded.");
     }

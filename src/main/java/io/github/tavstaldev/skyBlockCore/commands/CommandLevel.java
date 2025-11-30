@@ -6,9 +6,11 @@ import io.github.tavstaldev.minecorelib.utils.ChatUtils;
 import io.github.tavstaldev.skyBlockCore.SkyBlockCore;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -111,7 +113,48 @@ public class CommandLevel implements CommandExecutor {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
                     }
-                    // Additional logic for getting player levels
+
+                    if (args.length == 2) {
+                        if (!sender.hasPermission("skyblockcore.commands.level.get.others")) {
+                            SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
+                            return true;
+                        }
+                        OfflinePlayer target = SkyBlockCore.Instance.getServer().getOfflinePlayer(args[1]);
+                        if (!target.hasPlayedBefore() && !target.isOnline()) {
+                            SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPlayer", Map.of("player", args[1]));
+                            return true;
+                        }
+
+                        var playerData = SkyBlockCore.database().getPlayerData(target.getUniqueId());
+                        if (playerData.isEmpty()) {
+                            SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPlayerData", Map.of("player", args[1]));
+                            return true;
+                        }
+
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Level.Get.OtherLevel", Map.of(
+                                        "player", args[1],
+                                        "level", String.valueOf(playerData.get().getLevel())
+                                )
+                        );
+                        return true;
+                    }
+
+                    // Handle commands sent from the console
+                    if (sender instanceof ConsoleCommandSender) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.NotPlayer");
+                        return true;
+                    }
+                    Player player = (Player) sender;
+
+                    var playerData = SkyBlockCore.database().getPlayerData(player.getUniqueId());
+                    if (playerData.isEmpty()) {
+                        SkyBlockCore.Instance.sendCommandReply(player, "General.NoPlayerData", Map.of("player", player.getName()));
+                        return true;
+                    }
+                    SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Level.Get.YourLevel", Map.of(
+                                    "level", String.valueOf(playerData.get().getLevel())
+                            )
+                    );
                     return true;
                 }
                 case "add": {
@@ -120,7 +163,43 @@ public class CommandLevel implements CommandExecutor {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
                     }
-                    // Additional logic for adding levels
+
+                    if (args.length != 3) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidArguments");
+                        return true;
+                    }
+
+                    OfflinePlayer target = SkyBlockCore.Instance.getServer().getOfflinePlayer(args[1]);
+                    if (!target.hasPlayedBefore() && !target.isOnline()) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPlayer", Map.of("player", args[1]));
+                        return true;
+                    }
+
+                    int amount;
+                    try {
+                        amount = Integer.parseInt(args[2]);
+                    } catch (Exception ex) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidNumber", Map.of("number", args[2]));
+                        return true;
+                    }
+
+                    var playerData = SkyBlockCore.database().getPlayerData(target.getUniqueId()).orElse(null);
+                    if (playerData == null) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPlayerData", Map.of("player", args[1]));
+                        return true;
+                    }
+
+                    playerData.setLevel(playerData.getLevel() + amount);
+                    SkyBlockCore.database().updatePlayerData(playerData);
+                    SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Level.Add.Success", Map.of(
+                                    "player", args[1],
+                                    "amount", String.valueOf(amount),
+                                    "new_level", String.valueOf(playerData.getLevel())
+                            )
+                    );
+                    if (target.isOnline()) {
+                        SkyBlockCore.Instance.sendCommandReply(target.getPlayer(), "Commands.Level.Add.NewLevel", Map.of("level", String.valueOf(playerData.getLevel())));
+                    }
                     return true;
                 }
                 case "remove": {
@@ -129,7 +208,43 @@ public class CommandLevel implements CommandExecutor {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
                     }
-                    // Additional logic for removing levels
+
+                    if (args.length != 3) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidArguments");
+                        return true;
+                    }
+
+                    OfflinePlayer target = SkyBlockCore.Instance.getServer().getOfflinePlayer(args[1]);
+                    if (!target.hasPlayedBefore() && !target.isOnline()) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPlayer", Map.of("player", args[1]));
+                        return true;
+                    }
+
+                    int amount;
+                    try {
+                        amount = Integer.parseInt(args[2]);
+                    } catch (Exception ex) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidNumber", Map.of("number", args[2]));
+                        return true;
+                    }
+
+                    var playerData = SkyBlockCore.database().getPlayerData(target.getUniqueId()).orElse(null);
+                    if (playerData == null) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPlayerData", Map.of("player", args[1]));
+                        return true;
+                    }
+
+                    playerData.setLevel(playerData.getLevel() - amount);
+                    SkyBlockCore.database().updatePlayerData(playerData);
+                    SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Level.Remove.Success", Map.of(
+                                    "player", args[1],
+                                    "amount", String.valueOf(amount),
+                                    "new_level", String.valueOf(playerData.getLevel())
+                            )
+                    );
+                    if (target.isOnline()) {
+                        SkyBlockCore.Instance.sendCommandReply(target.getPlayer(), "Commands.Level.Remove.NewLevel", Map.of("level", String.valueOf(playerData.getLevel())));
+                    }
                     return true;
                 }
                 case "set": {
@@ -138,7 +253,43 @@ public class CommandLevel implements CommandExecutor {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
                     }
-                    // Additional logic for setting levels
+
+                    if (args.length != 3) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidArguments");
+                        return true;
+                    }
+
+                    OfflinePlayer target = SkyBlockCore.Instance.getServer().getOfflinePlayer(args[1]);
+                    if (!target.hasPlayedBefore() && !target.isOnline()) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPlayer", Map.of("player", args[1]));
+                        return true;
+                    }
+
+                    int amount;
+                    try {
+                        amount = Integer.parseInt(args[2]);
+                    } catch (Exception ex) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidNumber", Map.of("number", args[2]));
+                        return true;
+                    }
+
+                    var playerData = SkyBlockCore.database().getPlayerData(target.getUniqueId()).orElse(null);
+                    if (playerData == null) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPlayerData", Map.of("player", args[1]));
+                        return true;
+                    }
+
+                    playerData.setLevel(amount);
+                    SkyBlockCore.database().updatePlayerData(playerData);
+                    SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Level.Set.Success", Map.of(
+                                    "player", args[1],
+                                    "amount", String.valueOf(amount),
+                                    "new_level", String.valueOf(playerData.getLevel())
+                            )
+                    );
+                    if (target.isOnline()) {
+                        SkyBlockCore.Instance.sendCommandReply(target.getPlayer(), "Commands.Level.Set.NewLevel", Map.of("level", String.valueOf(playerData.getLevel())));
+                    }
                     return true;
                 }
                 case "reset": {
@@ -147,7 +298,43 @@ public class CommandLevel implements CommandExecutor {
                         SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPermission");
                         return true;
                     }
-                    // Additional logic for resetting levels
+
+                    if (args.length != 3) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidArguments");
+                        return true;
+                    }
+
+                    OfflinePlayer target = SkyBlockCore.Instance.getServer().getOfflinePlayer(args[1]);
+                    if (!target.hasPlayedBefore() && !target.isOnline()) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidPlayer", Map.of("player", args[1]));
+                        return true;
+                    }
+
+                    int amount;
+                    try {
+                        amount = Integer.parseInt(args[2]);
+                    } catch (Exception ex) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Common.InvalidNumber", Map.of("number", args[2]));
+                        return true;
+                    }
+
+                    var playerData = SkyBlockCore.database().getPlayerData(target.getUniqueId()).orElse(null);
+                    if (playerData == null) {
+                        SkyBlockCore.Instance.sendCommandReply(sender, "General.NoPlayerData", Map.of("player", args[1]));
+                        return true;
+                    }
+
+                    playerData.setLevel(0);
+                    SkyBlockCore.database().updatePlayerData(playerData);
+                    SkyBlockCore.Instance.sendCommandReply(sender, "Commands.Level.Reset.Success", Map.of(
+                                    "player", args[1],
+                                    "amount", String.valueOf(amount),
+                                    "new_level", String.valueOf(playerData.getLevel())
+                            )
+                    );
+                    if (target.isOnline()) {
+                        SkyBlockCore.Instance.sendCommandReply(target.getPlayer(), "Commands.Level.Reset.NewLevel");
+                    }
                     return true;
                 }
             }
@@ -157,7 +344,7 @@ public class CommandLevel implements CommandExecutor {
         }
 
         // Default behavior if no arguments are provided
-        if (!(sender instanceof Player player)) {
+        if (sender instanceof Player) {
             help(sender, 1);
             return true;
         }

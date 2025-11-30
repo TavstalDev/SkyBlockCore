@@ -21,7 +21,7 @@ public class TimeUtil {
      * @param date   The target date to calculate the duration from the current time.
      * @return A localized string representing the duration.
      */
-    public static String formatDuration(Player player, LocalDateTime date) {
+    public static String formatDate(Player player, LocalDateTime date) {
         final PluginTranslator translator = SkyBlockCore.Instance.getTranslator();
         final long seconds = Duration.between(LocalDateTime.now(), date).abs().getSeconds();
         long days = seconds / 86400;

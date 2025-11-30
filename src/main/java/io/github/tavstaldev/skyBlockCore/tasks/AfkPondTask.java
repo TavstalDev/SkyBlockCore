@@ -1,12 +1,13 @@
 package io.github.tavstaldev.skyBlockCore.tasks;
 
+import io.github.tavstaldev.minecorelib.utils.ChatUtils;
 import io.github.tavstaldev.skyBlockCore.SkyBlockCore;
 import io.github.tavstaldev.skyBlockCore.managers.PlayerCacheManager;
+import io.github.tavstaldev.skyBlockCore.util.TimeUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -35,50 +36,46 @@ public class AfkPondTask extends BukkitRunnable {
             return;
         }
 
-        // Map to store commands to execute for each player
+        final var now = LocalDateTime.now();
+        final var rewards = config.afkPondRewards;
         Map<UUID, Set<String>> playerCommandsToExecute = new HashMap<>();
         for (var playerId : playersInPond.keySet()) {
-            // Get the player's AFK start time
-            var afkTime = PlayerCacheManager.getAfkTime(playerId);
-            if (afkTime == null)
-                continue;
-
-            // Calculate the duration the player has been AFK
-            var duration = Duration.between(afkTime, LocalDateTime.now()).abs();
-            var minutes = duration.toMinutes();
-            if (minutes < 1)
-                continue;
-
-            // Determine the reward commands to execute based on the player's AFK time
-            Set<String> commandsToRun = new HashSet<>();
-            for (var reward : config.afkPondRewards) {
-                if (minutes % reward.interval != 0)
+            for (var reward : rewards) {
+                var nextRewardTime = PlayerCacheManager.getAfkRewardTime(playerId, reward.command);
+                if (nextRewardTime == null || now.isBefore(nextRewardTime))
                     continue;
 
-                commandsToRun.add(reward.command);
+                PlayerCacheManager.addAfkRewardTime(playerId, reward.command, now.plusMinutes(reward.interval));
+                if (playerCommandsToExecute.containsKey(playerId)) {
+                    playerCommandsToExecute.get(playerId).add(reward.command);
+                } else {
+                    Set<String> commands = new HashSet<>();
+                    commands.add(reward.command);
+                    playerCommandsToExecute.put(playerId, commands);
+                }
             }
-            if (!commandsToRun.isEmpty())
-                playerCommandsToExecute.put(playerId, commandsToRun);
         }
-
-        if (playerCommandsToExecute.isEmpty())
-            return;
 
         // Execute the reward commands on the main thread
         Bukkit.getScheduler().runTask(SkyBlockCore.Instance, () -> {
-            for (var entry : playerCommandsToExecute.entrySet()) {
+            var server = Bukkit.getServer();
+            var console = server.getConsoleSender();
+            for (var entry : playersInPond.entrySet()) {
                 var playerId = entry.getKey();
                 Player player = Bukkit.getPlayer(playerId);
                 // Validate the player's state before executing commands
                 if (player == null || !player.isOnline() || player.isDead() || player.isFlying() || player.isInsideVehicle()) {
                     PlayerCacheManager.removeFromAfkPond(playerId);
-                    return;
+                    continue;
                 }
+                String time = SkyBlockCore.Instance.getTranslator().localize(player, "AfkPond.ActionBar", Map.of(
+                        "time", TimeUtil.formatDate(player, entry.getValue())
+                ));
+                player.sendActionBar(ChatUtils.translateColors(time, true));
 
-                // Execute the commands for the player
-                var server = Bukkit.getServer();
-                var console = server.getConsoleSender();
-                var commandsToRun = entry.getValue();
+                var commandsToRun = playerCommandsToExecute.get(playerId);
+                if (commandsToRun == null || commandsToRun.isEmpty())
+                    continue;
                 for (var command : commandsToRun) {
                     server.dispatchCommand(console, command.replace("%player%", player.getName()));
                 }

@@ -79,7 +79,10 @@ public class PlayerEventListener implements Listener {
         if (SkyBlockCore.database().getPlayerData(playerId).isEmpty())
             SkyBlockCore.database().addPlayerData(playerId);
 
-        PlayerCacheManager.addJoinTime(playerId, LocalDateTime.now());
+        var config = SkyBlockCore.config();
+        if (config.gameTimeRewardEnabled) {
+            PlayerCacheManager.addJoinTime(playerId, LocalDateTime.now().plusMinutes(config.gameTimeRewardRequiredOnlineTime));
+        }
     }
 
     /**
