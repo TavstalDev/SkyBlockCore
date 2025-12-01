@@ -21,21 +21,23 @@ public class RewardResetTask extends BukkitRunnable {
         var config = SkyBlockCore.config();
         boolean shouldSave = false;
 
+        // Reset weekly rewards
+        var nextMonday = now
+                .withHour(0).withMinute(0).withSecond(0).withNano(0)
+                .with(java.time.DayOfWeek.MONDAY);
+        if (!nextMonday.isAfter(now)) {
+            shouldSave = true;
+            config.nextWeeklyReset = nextMonday.plusWeeks(1);
+            config.set("rewardReset.nextWeeklyReset", config.nextWeeklyReset.toString());
+            database.resetWeeklyRewards();
+        }
+
         // Reset daily rewards
         if (now.isAfter(config.nextDailyReset)) {
             shouldSave = true;
             config.nextDailyReset = now.withHour(0).withMinute(0).withSecond(0).withNano(0).plusDays(1);
             config.set("rewardReset.nextDailyReset", config.nextDailyReset.toString());
             database.resetDailyRewards();
-        }
-
-        // Reset weekly rewards
-        if (now.isAfter(config.nextWeeklyReset)) {
-            shouldSave = true;
-            config.nextWeeklyReset = now.withHour(0).withMinute(0).withSecond(0).withNano(0)
-                    .plusDays(8 - now.getDayOfWeek().getValue());
-            config.set("rewardReset.nextWeeklyReset", config.nextWeeklyReset.toString());
-            database.resetWeeklyRewards();
         }
 
         // Reset hourly rewards
